@@ -8,4 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface SprintRepository extends JpaRepository<Sprint, UUID> {
+    boolean existsByProjectIdAndName(UUID projectId, String name);
 }

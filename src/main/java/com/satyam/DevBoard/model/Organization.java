@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-@ToString
 @Entity
 @Table(name = "organizations")
 public class Organization {

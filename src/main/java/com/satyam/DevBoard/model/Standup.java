@@ -22,12 +22,12 @@ public class Standup {
     @UuidGenerator
     @GeneratedValue
     @Setter(AccessLevel.NONE)
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private UUID id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false, unique = true)
-    private Project projectId;
+    private Project project;
 
     @Column(name = "schedule_days", nullable = false)
     private String scheduleDays = "MON,TUE,WED,THU,FRI";

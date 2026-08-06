@@ -8,4 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface StandupResponseRepository extends JpaRepository<StandupResponse, UUID> {
+    boolean existsByStandupRunIdAndUserId(UUID standupRunId, UUID userId);
 }

@@ -34,7 +34,7 @@ public class Notification {
     private Organization organization;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false)
     private Type type;
 
     @Column(nullable = false)
