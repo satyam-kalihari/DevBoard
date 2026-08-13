@@ -22,7 +22,7 @@ public class StandupResponseService {
 
     public StandupResponse createStandupResponce(CreateStandupResponseRequest request){
 
-        if (standupRunRepository.existsByStandupRunIdAndUserId(request.getStandupRunId(), request.getUserId())){
+        if (standupResponseRepository.existsByStandupRunIdAndUserId(request.getStandupRunId(), request.getUserId())){
             throw new DuplicateResourceException("You have already submitted a response for this standup.");
         }
         StandupRun standupRun = standupRunRepository.findById(request.getStandupRunId())
