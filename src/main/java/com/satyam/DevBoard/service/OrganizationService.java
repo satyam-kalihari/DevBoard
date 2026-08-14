@@ -1,10 +1,16 @@
 package com.satyam.DevBoard.service;
 
 import com.satyam.DevBoard.dto.request.CreateOrganizationRequest;
+import com.satyam.DevBoard.dto.request.UpdateOrganizationRequest;
+import com.satyam.DevBoard.exception.DuplicateResourceException;
+import com.satyam.DevBoard.exception.ResourceNotFoundException;
 import com.satyam.DevBoard.model.Organization;
 import com.satyam.DevBoard.repository.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -54,5 +60,51 @@ public class OrganizationService {
         }
 
         return candidate;
+    }
+
+    public Organization getOrganizationById(UUID id){
+        Organization org = organizationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Organization not found"));
+        return org;
+    }
+
+    public List<Organization> getAllOrganizations(){
+        List<Organization> organizations = organizationRepository.findAll();
+        return organizations;
+    }
+
+    public Organization updateOrganization(UUID id, UpdateOrganizationRequest request){
+        Organization org = organizationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Organization not found"));
+
+        if (request.getName() != null){
+            org.setName(request.getName());
+        }
+
+        if (request.getSlug() != null){
+            if(!request.getSlug().equals(org.getSlug()) &&
+            organizationRepository.existsBySlug(request.getSlug())){
+                throw new DuplicateResourceException("An organization with the slug already exists");
+            }
+            org.setSlug(request.getSlug());
+        }
+
+        if (request.getLocation() != null) {
+            org.setLocation(request.getLocation());
+        }
+
+        if (request.getTimeZone() != null) {
+            org.setTimeZone(request.getTimeZone());
+        }
+
+        if (request.getAvatarUrl() != null) {
+            org.setAvatarUrl(request.getAvatarUrl());
+        }
+        return organizationRepository.save(org);
+    }
+
+    public void deleteOrganization(UUID id){
+        Organization org = getOrganizationById(id);
+        organizationRepository.delete(org);
     }
 }

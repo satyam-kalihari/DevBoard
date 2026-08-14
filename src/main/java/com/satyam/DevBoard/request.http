@@ -1,0 +1,22 @@
+### Create Organization
+POST http://localhost:8080/api/v1/organizations
+Content-Type: application/json
+
+{
+  "name": "Acme Corp",
+  "slug": "acme-corp",
+  "location": "Nagpur, India",
+  "timezone": "Asia/Kolkata"
+}
+
+### Get Organization
+GET http://localhost:8080/api/v1/organizations/{{org_id}}
+
+### Create User
+POST http://localhost:8080/api/v1/users
+Content-Type: application/json
+
+{
+  "name": "Satyam Kalihari",
+  "email": "satyam@acme.com"
+}
