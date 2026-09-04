@@ -6,10 +6,11 @@ Content-Type: application/json
   "name": "Acme Corp",
   "slug": "acme-corp",
   "location": "Nagpur, India",
-  "timezone": "Asia/Kolkata"
+  "timeZone": "Asia/Kolkata"
 }
 
 ### Get Organization
+@org_id = bc2edd1b-ad72-47fd-8b49-39640eb64ddd
 GET http://localhost:8080/api/v1/organizations/{{org_id}}
 
 ### Create User
@@ -18,5 +19,26 @@ Content-Type: application/json
 
 {
   "name": "Satyam Kalihari",
-  "email": "satyam@acme.com"
+  "email": "satyam@acme.com",
+  "phone": "8349132468",
+  "avatarUrl": "sads/dsahdjsa/sadsad.com"
 }
+
+### Get User
+@user_id = b9abce1d-716d-4275-a384-12d900c10cf
+GET http://localhost:8080/api/v1/users/{{user_id}}
+
+
+### Get All Users
+GET http://localhost:8080/api/v1/users
+
+### Update a user
+PATCH http://localhost:8080/api/v1/users/b9abce1d-716d-4275-a384-12d900c10cfc
+Content-Type: application/json
+
+{
+  "name": "oBITO kalihari"
+}
+
+### Delete a user
+DELETE http://localhost:8080/api/v1/users/b9abce1d-716d-4275-a384-12d900c10cfc
