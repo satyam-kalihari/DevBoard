@@ -9,6 +9,7 @@ import com.satyam.DevBoard.repository.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -100,6 +101,7 @@ public class OrganizationService {
         if (request.getAvatarUrl() != null) {
             org.setAvatarUrl(request.getAvatarUrl());
         }
+        org.setUpdatedAt(LocalDateTime.now());
         return organizationRepository.save(org);
     }
 
