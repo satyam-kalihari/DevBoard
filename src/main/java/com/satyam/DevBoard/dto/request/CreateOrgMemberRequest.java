@@ -16,6 +16,6 @@ public class CreateOrgMemberRequest {
     @NotNull(message = "User Id is missing")
     private UUID userId;
 
-    @NotBlank(message = "Role is blank")
+    @NotNull(message = "Role is blank")
     private OrgMember.Role role;
 }
