@@ -52,13 +52,12 @@ public class ProjectService {
 
 //    GET PROJECT BY ID METHOD
     public Project getProjectById(UUID id){
-        return projectRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Project does not exist"));
+        return projectRepository.findByIdWithDetail(id);
     }
 
 //    GET ALL PROJECTS
     public List<Project> getAllProject(){
-        return projectRepository.findAll();
+        return projectRepository.findAllWithDetails();
     }
 
 //    UPDATE PROJECT
