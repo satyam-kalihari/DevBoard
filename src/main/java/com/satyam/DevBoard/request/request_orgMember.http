@@ -1,0 +1,17 @@
+
+### Create OrgMember
+POST http://localhost:8080/api/v1/org_members
+Content-Type: application/json
+
+{
+  "orgId": "bc2edd1b-ad72-47fd-8b49-39640eb64ddd",
+  "userId": "a7f372e2-6bd2-4a26-bac0-62ed64edd623",
+  "role": "MEMBER"
+}
+
+### Get All OrgMembers
+@orgMember_id = 045e21d3-7d4c-4453-8a22-f988a9ce41eb
+GET http://localhost:8080/api/v1/org_members/4112a02e-ce78-4f17-bfd2-9477ad07f50a
+
+### Delete OrgMember
+DELETE http://localhost:8080/api/v1/org_members/045e21d3-7d4c-4453-8a22-f988a9ce41eb

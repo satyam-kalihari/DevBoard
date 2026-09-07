@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 public class CreateProjectRequest {
@@ -15,6 +16,12 @@ public class CreateProjectRequest {
     @Size(max = 50,message = "Name cannot be more than 50 character")
     private String name;
 
+    @NotNull(message = "Organization ID is required")
+    private UUID orgId;
+
+    @NotNull(message = "User Id is missing")
+    private UUID userId;
+
     private String description;
 
     @NotNull(message = "Status is required")
@@ -22,5 +29,5 @@ public class CreateProjectRequest {
 
     private LocalDate startDate;
     private LocalDate targetDate;
-    private LocalDate endDate;
+//    private LocalDate endDate;
 }
