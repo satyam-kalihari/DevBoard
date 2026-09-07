@@ -46,12 +46,13 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
-    @PatchMapping
+    @PatchMapping("/{id}")
     public ResponseEntity<ProjectResponse> updateProject(
+            @PathVariable UUID id,
             @Valid @RequestBody UpdateProjectRequest request
             ){
 
-        Project project = projectService.updateProject(request);
+        Project project = projectService.updateProject(id, request);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(ProjectResponse.fromEntity(project));
     }

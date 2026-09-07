@@ -62,8 +62,8 @@ public class ProjectService {
     }
 
 //    UPDATE PROJECT
-    public Project updateProject(UpdateProjectRequest request){
-        Project project = projectRepository.findById(request.getId())
+    public Project updateProject(UUID id, UpdateProjectRequest request){
+        Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("The Project does not exists"));
 
         if(request.getName() != null){

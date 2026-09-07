@@ -8,8 +8,6 @@ import java.util.UUID;
 
 @Data
 public class UpdateProjectRequest {
-
-    private UUID id;
     private String name;
     private String description;
     private Project.Status status;

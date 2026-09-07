@@ -17,16 +17,12 @@ Content-Type: application/json
 GET http://localhost:8080/api/v1/projects
 
 ### Update Project
-PATCH http://localhost:8080/api/v1/projects
+PATCH http://localhost:8080/api/v1/projects/{{pro_id}}
 Content-Type: application/json
 
 {
-  "id": "8d007c26-ec88-47ca-b44e-2fae905a9d64",
-  "name": "DevBoard 2",
-  "description": "Testing to Update a project",
-  "status": "PENDING",
   "startDate":"2026-12-08",
-  "targetDate": "2026-11-09"
+  "targetDate": "2027-11-09"
 }
 
 ### Delete Project
