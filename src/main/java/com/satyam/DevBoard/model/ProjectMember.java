@@ -23,11 +23,11 @@ public class ProjectMember {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
-    private Project projectId;
+    private Project project;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User userId;
+    private User user;
 
     @CreationTimestamp
     @Column(name = "joined_at", updatable = false, nullable = false)

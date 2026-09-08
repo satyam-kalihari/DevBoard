@@ -11,6 +11,9 @@ import com.satyam.DevBoard.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class ProjectMemberService {
@@ -27,9 +30,29 @@ public class ProjectMemberService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         ProjectMember projectMember = new ProjectMember();
-        projectMember.setProjectId(project);
-        projectMember.setUserId(user);
+        projectMember.setProject(project);
+        projectMember.setUser(user);
 
         return projectMemberRepository.save(projectMember);
+    }
+
+//  GET ALL MEMBERS OF THE PROJECT
+    public List<ProjectMember> getAllMemberByProjectId(UUID proId){
+        return projectMemberRepository.getAllByProjectIdWithDetails(proId);
+    }
+
+//    GET ALL PROJECTS OF A USER
+    public List<ProjectMember> getAllProjectByUserId(UUID usId){
+        return projectMemberRepository.getAllByUserIdWithDetails(usId);
+    }
+
+//    GET THE PROJECT MEMBER BY ID
+    public ProjectMember getProjectMemberById(UUID id){
+        return projectMemberRepository.getByIdWithDetails(id);
+    }
+
+    public void deleteProjectMember(UUID id){
+        ProjectMember member = getProjectMemberById(id);
+        projectMemberRepository.delete(member);
     }
 }

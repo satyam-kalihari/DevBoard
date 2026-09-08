@@ -1,0 +1,29 @@
+@baseUrl = http://localhost:8080/api/v1
+@projectId = 3aba9ba4-61b5-471b-a6a8-d22ef1fcc814
+@userId = a7f372e2-6bd2-4a26-bac0-62ed64edd623
+@projectMemberId = 081380a3-a1ac-4781-9367-4e7bf989873b
+
+### Create Project Member
+POST {{baseUrl}}/project_members
+Content-Type: application/json
+
+{
+  "projectId": "{{projectId}}",
+  "userId": "{{userId}}",
+  "role": "DEVELOPER"
+}
+
+### Get All Members of a Project (Using Param)
+GET {{baseUrl}}/project_members?projectId={{projectId}}
+Accept: application/json
+
+### Get All Projects for a Specific User (Using Param)
+GET {{baseUrl}}/project_members?userId={{userId}}
+Accept: application/json
+
+### Get Project Member by ID
+GET {{baseUrl}}/project_members/{{projectMemberId}}
+#Accept: application/json
+
+### Delete Project Member
+DELETE {{baseUrl}}/project_members/{{projectMemberId}}
