@@ -3,15 +3,15 @@ POST http://localhost:8080/api/v1/organizations
 Content-Type: application/json
 
 {
-  "name": "Acme Corp",
-  "slug": "acme-corp",
-  "location": "Nagpur, India",
+  "name": "Tech Corp",
+  "slug": "tech-corp",
+  "location": "Raipur, India",
   "timeZone": "Asia/Kolkata"
 }
 
 ### Get Organization
 @org_id = bc2edd1b-ad72-47fd-8b49-39640eb64ddd
-GET http://localhost:8080/api/v1/organizations/{{org_id}}
+GET http://localhost:8080/api/v1/organizations
 
 ### Create User
 POST http://localhost:8080/api/v1/users

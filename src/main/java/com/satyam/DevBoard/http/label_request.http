@@ -1,0 +1,44 @@
+@baseUrl = http://localhost:8080/api/v1
+@orgId = bc2edd1b-ad72-47fd-8b49-39640eb64ddd
+@labelId = 18ef928c-a747-4746-9505-0e4835c23da4
+
+### Create Label for Organization
+POST {{baseUrl}}/labels/organization/{{orgId}}
+Content-Type: application/json
+
+{
+  "name": "Risk",
+  "colorHex": "#EF4444"
+}
+
+### Create Label (Using default color fallback)
+POST {{baseUrl}}/labels/organization/{{orgId}}
+Content-Type: application/json
+
+{
+  "name": "Feature Request"
+}
+
+### Get All Labels by Organization ID (Using Query Param)
+GET {{baseUrl}}/labels?orgId={{orgId}}
+Accept: application/json
+
+### Get All Labels
+GET {{baseUrl}}/labels
+Accept: application/json
+
+### Get Label by ID (Assuming you applied the /{id} path variable fix)
+GET {{baseUrl}}/labels/{{labelId}}
+Accept: application/json
+
+### Update Label
+PATCH {{baseUrl}}/labels/{{labelId}}
+Content-Type: application/json
+
+{
+  "name": "Critical Bug",
+  "colorHex": "#DC2626"
+}
+
+### Delete Label
+DELETE {{baseUrl}}/labels/{{labelId}}
