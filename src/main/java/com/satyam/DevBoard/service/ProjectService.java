@@ -11,6 +11,7 @@ import com.satyam.DevBoard.repository.ProjectRepository;
 import com.satyam.DevBoard.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,6 +26,7 @@ public class ProjectService {
     private final UserRepository userRepository;
 
 //    CREATE PROJECT METHOD
+    @Transactional
     public Project createProject(UUID orgId, UUID userId, CreateProjectRequest request){
 
         if (request.getStartDate() != null && request.getTargetDate() != null && request.getStartDate().isAfter(request.getTargetDate()) ){
@@ -51,16 +53,19 @@ public class ProjectService {
     }
 
 //    GET PROJECT BY ID METHOD
+    @Transactional(readOnly = true)
     public Project getProjectById(UUID id){
         return projectRepository.findByIdWithDetail(id);
     }
 
 //    GET ALL PROJECTS
+    @Transactional(readOnly = true)
     public List<Project> getAllProject(){
         return projectRepository.findAllWithDetails();
     }
 
 //    UPDATE PROJECT
+    @Transactional
     public Project updateProject(UUID id, UpdateProjectRequest request){
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("The Project does not exists"));
@@ -97,6 +102,7 @@ public class ProjectService {
     }
 
 //    DELETE PROJECT METHOD
+    @Transactional
     public void deleteProject(UUID id){
         Project project = getProjectById(id);
         projectRepository.delete(project);
