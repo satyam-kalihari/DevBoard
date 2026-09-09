@@ -1,0 +1,37 @@
+@baseUrl = http://localhost:8080/api/v1
+@projectId = 3aba9ba4-61b5-471b-a6a8-d22ef1fcc814
+@sprintId = e20642c6-a77e-4b60-a2c8-96cd41be0b97
+
+### Create Sprint
+POST {{baseUrl}}/sprints
+Content-Type: application/json
+
+{
+  "projectId": "{{projectId}}",
+  "name": "Sprint 1",
+  "goal": "Initial MVP setup and database schema design",
+  "startDate": "2026-09-10",
+  "endDate": "2026-09-24"
+}
+
+### Get Sprint by ID
+GET {{baseUrl}}/sprints/{{sprintId}}
+Accept: application/json
+
+### Get All Sprints by Project ID
+GET {{baseUrl}}/sprints?projectId={{projectId}}
+Accept: application/json
+
+### Update Sprint
+PATCH {{baseUrl}}/sprints/{{sprintId}}
+Content-Type: application/json
+
+{
+  "name": "Sprint 1 - Extended",
+  "goal": "Initial MVP setup with extended testing phase",
+  "status": "ACTIVE",
+  "endDate": "2026-09-30"
+}
+
+### Delete Sprint
+DELETE {{baseUrl}}/sprints/{{sprintId}}
