@@ -23,7 +23,7 @@ public class SprintResponse {
     private LocalDate startDate;
     private LocalDate endDate;
     private Sprint.Status status;
-    private List<Task> tasks;
+    private List<TaskResponse> tasks;
     private LocalDateTime createdAt;
 
     public static SprintResponse fromEntity(Sprint sprint){
@@ -36,7 +36,10 @@ public class SprintResponse {
                 .startDate(sprint.getStartDate())
                 .endDate(sprint.getEndDate())
                 .status(sprint.getStatus())
-                .tasks(sprint.getTasks())
+                .tasks(sprint.getTasks() == null ? List.of() : sprint.getTasks()
+                        .stream()
+                        .map(TaskResponse::fromEntity)
+                        .toList())
                 .createdAt(sprint.getCreatedAt())
                 .build();
     }
