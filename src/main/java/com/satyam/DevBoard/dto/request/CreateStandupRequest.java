@@ -1,9 +1,8 @@
 package com.satyam.DevBoard.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -15,8 +14,9 @@ public class CreateStandupRequest {
     @NotNull(message= "Project ID cannot be null ")
     private UUID projectId;
 
-    @NotBlank(message = "Schedule day cannot be blank")
-    private String scheduleDays = "MON,TUE,WED,THU,FRI";
+    @Pattern(regexp = "^(MON|TUE|WED|THU|FRI|SAT|SUN)(,(MON|TUE|WED|THU|FRI|SAT|SUN))*$",
+            message = "Days must be comma-separated abbreviations, e.g., MON,TUE,WED")
+    private String scheduleDays;
 
     @NotNull(message = "Time cannot be blank")
     private LocalTime scheduledTime;

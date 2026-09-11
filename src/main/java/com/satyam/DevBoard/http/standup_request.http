@@ -1,0 +1,34 @@
+@baseUrl = http://localhost:8080/api/v1
+@projectId = 2439a7fe-b003-4143-9e67-41d2bf72f3f5
+@standupId = f4d7d53d-e2b8-4454-a154-8d7533d7d519
+
+### Create Standup for a Project
+POST {{baseUrl}}/standups
+Content-Type: application/json
+
+{
+  "projectId": "{{projectId}}",
+  "scheduleDays": "MON,TUE,WED,THU,FRI",
+  "scheduledTime": "09:30:00"
+}
+
+### Get Standup by ID
+GET {{baseUrl}}/standups/{{standupId}}
+Accept: application/json
+
+### Get Standup by Project ID (Via Project Controller)
+GET {{baseUrl}}/projects/{{projectId}}/standups
+Accept: application/json
+
+### Update Standup Configuration
+PATCH {{baseUrl}}/standups/{{standupId}}
+Content-Type: application/json
+
+{
+  "scheduleDays": "MON,WED,FRI",
+  "scheduledTime": "10:00:00",
+  "isActive": false
+}
+
+### Delete Standup Configuration
+DELETE {{baseUrl}}/standups/{{standupId}}

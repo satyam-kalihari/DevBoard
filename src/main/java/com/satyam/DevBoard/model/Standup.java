@@ -36,7 +36,7 @@ public class Standup {
     private LocalTime scheduledTime = LocalTime.of(9, 0);
 
     @Column(name = "is_active", nullable = false)
-    private boolean isActive = true;
+    private Boolean isActive = true;
 
     @OneToMany(mappedBy = "standup", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StandupRun> runs = new ArrayList<>();

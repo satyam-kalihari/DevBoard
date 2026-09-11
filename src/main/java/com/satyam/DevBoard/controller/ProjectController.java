@@ -4,10 +4,13 @@ import com.satyam.DevBoard.dto.request.CreateProjectRequest;
 import com.satyam.DevBoard.dto.request.UpdateProjectRequest;
 import com.satyam.DevBoard.dto.response.ProjectResponse;
 import com.satyam.DevBoard.dto.response.SprintResponse;
+import com.satyam.DevBoard.dto.response.StandupResponse;
 import com.satyam.DevBoard.dto.response.TaskResponse;
 import com.satyam.DevBoard.model.Project;
+import com.satyam.DevBoard.model.Standup;
 import com.satyam.DevBoard.service.ProjectService;
 import com.satyam.DevBoard.service.SprintService;
+import com.satyam.DevBoard.service.StandupService;
 import com.satyam.DevBoard.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ public class ProjectController {
     private final ProjectService projectService;
     private final TaskService taskService;
     private final SprintService sprintService;
+    private final StandupService standupService;
 
     @PostMapping
     public ResponseEntity<ProjectResponse> createProject(
@@ -80,6 +84,13 @@ public class ProjectController {
         return ResponseEntity.ok(sprints);
     }
 
+    @GetMapping("/{projectId}/standups")
+    public ResponseEntity<StandupResponse> getStandupByProjectIdWithDetails(@PathVariable UUID projectId){
+
+        Standup standup = standupService.getStandupByProjectIdWithDetails(projectId);
+        return ResponseEntity.ok(StandupResponse.fromEntity(standup));
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<ProjectResponse> updateProject(
             @PathVariable UUID id,
@@ -88,7 +99,7 @@ public class ProjectController {
 
         Project project = projectService.updateProject(id, request);
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(ProjectResponse.fromEntity(project));
+        return ResponseEntity.status(HttpStatus.OK).body(ProjectResponse.fromEntity(project));
     }
 
     @DeleteMapping("/{id}")
