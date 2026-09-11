@@ -70,6 +70,16 @@ public class ProjectController {
         return ResponseEntity.ok(tasks);
     }
 
+    @GetMapping("/{projectId}/sprints")
+    public ResponseEntity<List<SprintResponse>> getAllByProjectId(@PathVariable UUID projectId){
+        List<SprintResponse> sprints = sprintService.getAllByProjectIdWithDetails(projectId)
+                .stream()
+                .map(SprintResponse::fromEntity)
+                .toList();
+
+        return ResponseEntity.ok(sprints);
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<ProjectResponse> updateProject(
             @PathVariable UUID id,

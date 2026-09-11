@@ -3,8 +3,10 @@ package com.satyam.DevBoard.controller;
 import com.satyam.DevBoard.dto.request.CreateSprintRequest;
 import com.satyam.DevBoard.dto.request.UpdateSprintRequest;
 import com.satyam.DevBoard.dto.response.SprintResponse;
+import com.satyam.DevBoard.dto.response.TaskResponse;
 import com.satyam.DevBoard.model.Sprint;
 import com.satyam.DevBoard.service.SprintService;
+import com.satyam.DevBoard.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SprintController {
     private final SprintService sprintService;
+    private final TaskService taskService;
 
     @PostMapping
     public ResponseEntity<SprintResponse> createSprint(
@@ -34,15 +37,15 @@ public class SprintController {
         return ResponseEntity.ok(SprintResponse.fromEntity(sprint));
     }
 
-    @GetMapping(params = "projectId")
-    public ResponseEntity<List<SprintResponse>> getAllByProjectId(@RequestParam UUID projectId){
-        List<SprintResponse> sprints = sprintService.getAllByProjectIdWithDetails(projectId)
+    @GetMapping("/{sprintId}/tasks")
+    public ResponseEntity<List<TaskResponse>> getTasksBySprintId(@PathVariable UUID sprintId) {
+        List<TaskResponse> tasks = taskService.getAllBySprintIdWithDetails(sprintId)
                 .stream()
-                .map(SprintResponse::fromEntity)
+                .map(TaskResponse::fromEntity)
                 .toList();
-
-        return ResponseEntity.ok(sprints);
+        return ResponseEntity.ok(tasks);
     }
+
 
     @PatchMapping("/{id}")
     public ResponseEntity<SprintResponse> updateSprint(
