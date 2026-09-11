@@ -3,7 +3,9 @@ package com.satyam.DevBoard.controller;
 import com.satyam.DevBoard.dto.request.CreateStandupRequest;
 import com.satyam.DevBoard.dto.request.UpdateStandupRequest;
 import com.satyam.DevBoard.dto.response.StandupResponse;
+import com.satyam.DevBoard.dto.response.StandupRunResponse;
 import com.satyam.DevBoard.model.Standup;
+import com.satyam.DevBoard.service.StandupRunService;
 import com.satyam.DevBoard.service.StandupService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -19,6 +22,7 @@ import java.util.UUID;
 public class StandupController {
 
     private final StandupService standupService;
+    private final StandupRunService standupRunService;
 
     @PostMapping
     public ResponseEntity<StandupResponse> createStandup(
@@ -34,6 +38,17 @@ public class StandupController {
 
         Standup standup = standupService.getStandUpByIdWithDetails(id);
         return ResponseEntity.ok(StandupResponse.fromEntity(standup));
+    }
+
+    @GetMapping("/{standupId}/runs")
+    public ResponseEntity<List<StandupRunResponse>> getByStandupIdWithDetails(@PathVariable UUID standupId){
+
+        List<StandupRunResponse> standupRunResponses = standupRunService.getAllByStandupIdWithDetails(standupId)
+                .stream()
+                .map(StandupRunResponse::fromEntity)
+                .toList();
+
+        return ResponseEntity.ok(standupRunResponses);
     }
 
     @PatchMapping("/{id}")

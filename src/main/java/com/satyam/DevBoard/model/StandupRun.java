@@ -39,7 +39,7 @@ public class StandupRun {
     private String aiSummary;
 
     @Column(name = "is_finalized", nullable = false)
-    private boolean isFinalized = false;
+    private Boolean isFinalized = false;
 
     @Column(name = "finalized_at")
     private LocalDateTime finalizedAt;

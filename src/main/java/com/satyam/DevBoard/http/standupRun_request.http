@@ -1,0 +1,31 @@
+@baseUrl = http://localhost:8080/api/v1
+@standupId = f4d7d53d-e2b8-4454-a154-8d7533d7d519
+@standupRunId = d219136c-6c73-4bee-ae9c-b72f0d951f82
+
+### Create Standup Run
+POST {{baseUrl}}/standupruns
+Content-Type: application/json
+
+{
+  "standupId": "{{standupId}}",
+  "runDate": "2026-09-12"
+}
+
+### Get All Runs for a Specific Standup (Via Standup Controller)
+GET {{baseUrl}}/standups/{{standupId}}/runs
+Accept: application/json
+
+### Get Single Standup Run by ID
+GET {{baseUrl}}/standupruns/{{standupRunId}}
+Accept: application/json
+
+### Update Standup Run (Add AI Summary)
+PATCH {{baseUrl}}/standupruns/{{standupRunId}}
+Content-Type: application/json
+
+{
+  "aiSummary": "The team made great progress on the database schema. John is blocked on the API deployment and needs assistance from Jane. No other blockers reported."
+}
+
+### Delete Standup Run
+DELETE {{baseUrl}}/standupruns/{{standupRunId}}
