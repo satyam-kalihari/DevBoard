@@ -1,14 +1,15 @@
 package com.satyam.DevBoard.service;
 
 import com.satyam.DevBoard.dto.request.CreateTaskRequest;
+import com.satyam.DevBoard.dto.request.UpdateTaskRequest;
 import com.satyam.DevBoard.exception.ResourceNotFoundException;
 import com.satyam.DevBoard.model.*;
 import com.satyam.DevBoard.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -21,21 +22,23 @@ public class TaskService {
     private final NotificationService notificationService;
     private final LabelRepository labelRepository;
 
+//    CREATE TASK
+    @Transactional
     public Task createTask(CreateTaskRequest request){
 
         Project project = projectRepository.findById(request.getProjectId())
-                .orElseThrow(() -> new ResourceNotFoundException("The resource you are trying to fetch does not exist"));
+                .orElseThrow(() -> new ResourceNotFoundException("The project you are trying to fetch does not exist"));
 
         Sprint sprint = null;
         if (request.getSprintId() != null) {
             sprint = sprintRepository.findById(request.getSprintId())
-                    .orElseThrow(() -> new ResourceNotFoundException("The resource you are trying to fetch does not exist"));
+                    .orElseThrow(() -> new ResourceNotFoundException("The sprint you are trying to fetch does not exist"));
         }
 
         Task parentTask = null;
         if (request.getParentTaskId() != null){
             parentTask = taskRepository.findById(request.getParentTaskId())
-                    .orElseThrow(() -> new ResourceNotFoundException("The resource you are trying to fetch does not exist"));
+                    .orElseThrow(() -> new ResourceNotFoundException("The parent task you are trying to fetch does not exist"));
         }
 
         Integer maxRank = taskRepository.findMaxRankByProjectIdAndSprintId(
@@ -64,7 +67,7 @@ public class TaskService {
         }
 
         if (request.getLabelIds() != null && !request.getLabelIds().isEmpty()) {
-            List<Label> labels = labelRepository.findAllById(request.getLabelIds());
+            Set<Label> labels = new HashSet<>(labelRepository.findAllById(request.getLabelIds()));
             task.setLabels(labels);
         }
 
@@ -77,4 +80,76 @@ public class TaskService {
 
         return save;
     }
+
+//    GET BY TASK ID
+    @Transactional(readOnly = true)
+    public Task getByIdWithDetails(UUID id){
+        return taskRepository.getByIdWithDetails(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Task does not exists"));
+    }
+
+//    GET ALL TASK BY PROJECT ID
+    @Transactional(readOnly = true)
+    public List<Task> getAllByProjectIdWithDetails(UUID projectId){
+        return taskRepository.getAllByProjectIdWithDetails(projectId);
+    }
+
+//    GET ALL TASK BY SPRINT ID
+    @Transactional(readOnly = true)
+    public List<Task> getAllBySprintIdWithDetails( UUID sprintId){
+        return taskRepository.getAllBySprintIdWithDetails(sprintId);
+    }
+
+//    GET ALL BACKLOG TASK BY PROJECT ID
+    @Transactional(readOnly = true)
+    public List<Task> getBacklogTaskByProjectId(UUID projectId){
+        return taskRepository.getBacklogTaskByProjectIdWithDetails(projectId);
+    }
+
+//    UPDATE TASK
+    @Transactional
+    public Task updateTask(UUID id, UpdateTaskRequest request){
+        Task task = taskRepository.getByIdWithDetails(id)
+                .orElseThrow(() -> new ResourceNotFoundException("This task does not exists"));
+
+        if (request.getTitle() != null) task.setTitle(request.getTitle());
+        if (request.getDescription() != null) task.setDescription(request.getDescription());
+        if (request.getStatus() != null) task.setStatus(request.getStatus());
+        if (request.getPriority() != null) task.setPriority(request.getPriority());
+        if (request.getStoryPoints() != null) task.setStoryPoints(request.getStoryPoints());
+        if (request.getDueDate() != null) task.setDueDate(request.getDueDate());
+
+        if (request.getSprintId() != null) {
+            Sprint sprint = sprintRepository.findById(request.getSprintId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Sprint not found."));
+            task.setSprint(sprint);
+        }
+        if (request.getParentTaskId() != null) {
+            Task parentTask = taskRepository.findById(request.getParentTaskId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Parent task not found."));
+            task.setParentTask(parentTask);
+        }
+
+        if (request.getAssigneeIds() != null){
+            List<User> users = userRepository.findAllById(request.getAssigneeIds());
+            task.getAssignees().clear();
+            task.getAssignees().addAll(users);
+        }
+
+        if (request.getLabelIds() != null){
+            List<Label> labels = labelRepository.findAllById(request.getLabelIds());
+            task.getLabels().clear();
+            task.getLabels().addAll(labels);
+        }
+
+        return taskRepository.save(task);
+    }
+
+    @Transactional
+    public void deleteTask(UUID id) {
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found."));
+        taskRepository.delete(task);
+    }
+
 }

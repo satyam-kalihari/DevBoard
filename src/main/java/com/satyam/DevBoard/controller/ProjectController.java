@@ -3,8 +3,12 @@ package com.satyam.DevBoard.controller;
 import com.satyam.DevBoard.dto.request.CreateProjectRequest;
 import com.satyam.DevBoard.dto.request.UpdateProjectRequest;
 import com.satyam.DevBoard.dto.response.ProjectResponse;
+import com.satyam.DevBoard.dto.response.SprintResponse;
+import com.satyam.DevBoard.dto.response.TaskResponse;
 import com.satyam.DevBoard.model.Project;
 import com.satyam.DevBoard.service.ProjectService;
+import com.satyam.DevBoard.service.SprintService;
+import com.satyam.DevBoard.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +23,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ProjectController {
     private final ProjectService projectService;
+    private final TaskService taskService;
+    private final SprintService sprintService;
 
     @PostMapping
     public ResponseEntity<ProjectResponse> createProject(
@@ -44,6 +50,24 @@ public class ProjectController {
                 .toList();
 
         return ResponseEntity.ok(projects);
+    }
+
+    @GetMapping("/{projectId}/tasks")
+    public ResponseEntity<List<TaskResponse>> getTasksByProjectId(@PathVariable UUID projectId) {
+        List<TaskResponse> tasks = taskService.getAllByProjectIdWithDetails(projectId)
+                .stream()
+                .map(TaskResponse::fromEntity)
+                .toList();
+        return ResponseEntity.ok(tasks);
+    }
+
+    @GetMapping("/{projectId}/tasks/backlog")
+    public ResponseEntity<List<TaskResponse>> getBacklogTasksByProjectId(@PathVariable UUID projectId) {
+        List<TaskResponse> tasks = taskService.getBacklogTaskByProjectId(projectId)
+                .stream()
+                .map(TaskResponse::fromEntity)
+                .toList();
+        return ResponseEntity.ok(tasks);
     }
 
     @PatchMapping("/{id}")

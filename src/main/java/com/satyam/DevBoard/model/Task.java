@@ -11,9 +11,7 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @Entity
@@ -84,7 +82,7 @@ public class Task {
             joinColumns = @JoinColumn(name = "task_id"),
             inverseJoinColumns = @JoinColumn(name = "label_id")
     )
-    private List<Label> labels = new ArrayList<>();
+    private Set<Label> labels = new HashSet<>();
 
     public enum Status{
         BACKLOG, TODO, IN_PROGRESS, IN_REVIEW, DONE, CANCELLED

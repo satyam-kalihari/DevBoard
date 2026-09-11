@@ -15,7 +15,7 @@ Content-Type: application/json
 }
 
 ### Get Sprint by ID
-GET {{baseUrl}}/sprints/{{sprintId}}
+GET {{baseUrl}}/sprints
 Accept: application/json
 
 ### Get All Sprints by Project ID

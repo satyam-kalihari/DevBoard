@@ -3,11 +3,11 @@ POST http://localhost:8080/api/v1/projects
 Content-Type: application/json
 
 {
-  "name": "DevBoard",
+  "name": "Project 2",
   "orgId": "bc2edd1b-ad72-47fd-8b49-39640eb64ddd",
   "userId": "a7f372e2-6bd2-4a26-bac0-62ed64edd623",
-  "description": "Testing to create a project",
-  "status": "ACTIVE",
+  "description": "Testing to create a 2nd project",
+  "status": "PENDING",
   "startDate":"2026-06-07",
   "targetDate": "2026-11-07"
 }

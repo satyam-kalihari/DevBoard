@@ -1,0 +1,64 @@
+@baseUrl = http://localhost:8080/api/v1
+@projectId = 2439a7fe-b003-4143-9e67-41d2bf72f3f5
+@sprintId = 3eb8cf0a-5b05-4d63-95e3-9897d1af538e
+@taskId = d80decf4-2758-4087-a8b6-4ecda9bf554a
+@userId = a7f372e2-6bd2-4a26-bac0-62ed64edd623
+@labelId = 741a8c74-aaf6-445f-b478-f276bb5fa56f
+
+### Create Task (Backlog - No Sprint)
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "projectId": "{{projectId}}",
+  "title": "Set up database schema",
+  "description": "Create PostgreSQL tables for projects and tasks.",
+  "priority": "HIGH",
+  "storyPoints": 5,
+  "dueDate": "2026-09-30",
+  "assigneesIds": ["{{userId}}"],
+  "labelIds": ["{{labelId}}"]
+}
+
+### Create Task (Assigned to Sprint)
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "projectId": "{{projectId}}",
+  "sprintId": "{{sprintId}}",
+  "title": "Implement JWT Auth",
+  "description": "Add Spring Security and JWT token generation.",
+  "priority": "URGENT",
+  "storyPoints": 8
+}
+
+### Get Task by ID
+GET {{baseUrl}}/tasks/{{taskId}}
+Accept: application/json
+
+### Get All Tasks by Project ID
+GET {{baseUrl}}/tasks?projectId={{projectId}}
+Accept: application/json
+
+### Get All Tasks by Sprint ID
+GET {{baseUrl}}/tasks?sprintId={{sprintId}}
+Accept: application/json
+
+### Get Backlog Tasks by Project ID
+GET {{baseUrl}}/tasks/backlog?projectId={{projectId}}
+Accept: application/json
+
+### Update Task
+PATCH {{baseUrl}}/tasks/{{taskId}}
+Content-Type: application/json
+
+{
+  "title": "Set up database schema (Updated)",
+  "status": "IN_PROGRESS",
+  "storyPoints": 3,
+  "assigneeIds": ["{{userId}}"]
+}
+
+### Delete Task
+DELETE {{baseUrl}}/tasks/{{taskId}}
