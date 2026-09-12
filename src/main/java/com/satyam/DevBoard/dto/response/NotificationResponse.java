@@ -13,15 +13,23 @@ import java.util.UUID;
 public class NotificationResponse {
 
     private UUID id;
+    private UUID userId;
+    private String userName;
+    private UUID orgId;
+    private String orgName;
     private Notification.Type type;
     private String title;
     private Map<String, Object> payload;
     private boolean isRead;
     private LocalDateTime createdAt;
 
-    public static NotificationResponse fromEntity(Notification notification){
+    public static NotificationResponse fromEntity(Notification notification) {
         return NotificationResponse.builder()
                 .id(notification.getId())
+                .userId(notification.getUser().getId())
+                .userName(notification.getUser().getName())
+                .orgId(notification.getOrganization().getId())
+                .orgName(notification.getOrganization().getName())
                 .type(notification.getType())
                 .title(notification.getTitle())
                 .payload(notification.getPayload())
