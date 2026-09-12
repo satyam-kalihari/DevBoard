@@ -1,0 +1,31 @@
+@baseUrl = http://localhost:8080/api/v1
+@standupRunId = d219136c-6c73-4bee-ae9c-b72f0d951f82
+@userId = a7f372e2-6bd2-4a26-bac0-62ed64edd623
+@standupResponseId = 1e1cb30d-c578-42e6-8072-163c3418a7f9
+
+### Create Standup Response
+POST {{baseUrl}}/standupruns/{{standupRunId}}/responses
+Content-Type: application/json
+
+{
+  "standupRunId": "{{standupRunId}}",
+  "userId": "{{userId}}",
+  "answerYesterday": "Finished the database schema design and created the Sprint models.",
+  "answerToday": "Will start working on the Standup Response REST APIs.",
+  "answerBlockers": "Need access to the Anthropic AI API key for the summary feature."
+}
+
+### Get Standup Response by ID
+GET {{baseUrl}}/standup-responses/{{standupResponseId}}
+Accept: application/json
+
+### Get Standup Responses by User ID
+GET {{baseUrl}}/standup-responses?userId={{userId}}
+Accept: application/json
+
+### Get All Responses for a Specific Standup Run (Via StandupRun Controller)
+GET {{baseUrl}}/standupruns/{{standupRunId}}/responses
+Accept: application/json
+
+### Delete Standup Response
+DELETE {{baseUrl}}/standup-responses/{{standupResponseId}}

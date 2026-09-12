@@ -11,6 +11,10 @@ import com.satyam.DevBoard.repository.StandupRunRepository;
 import com.satyam.DevBoard.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +24,8 @@ public class StandupResponseService {
     private final UserRepository userRepository;
     private final StandupResponseRepository standupResponseRepository;
 
-    public StandupResponse createStandupResponce(CreateStandupResponseRequest request){
+    @Transactional
+    public StandupResponse createStandupResponse(CreateStandupResponseRequest request){
 
         if (standupResponseRepository.existsByStandupRunIdAndUserId(request.getStandupRunId(), request.getUserId())){
             throw new DuplicateResourceException("You have already submitted a response for this standup.");
@@ -41,5 +46,40 @@ public class StandupResponseService {
         standupResponse.setHasBlockers(hasBlocker);
 
         return standupResponseRepository.save(standupResponse);
+    }
+
+//    GET STANDUP RESPONSES BY STANDUP RUN
+    @Transactional(readOnly = true)
+    public List<StandupResponse> getByStandupRunIdWithDetails(UUID standupRunId){
+        return standupResponseRepository.findByStandupRunIdWithDetails(standupRunId);
+    }
+
+//    GET STANDUP RESPONSES BY USER ID
+    @Transactional(readOnly = true)
+    public List<StandupResponse> getByUserIdWithDetails(UUID userId){
+        return standupResponseRepository.findByUserIdWithDetails(userId);
+    }
+
+//    GET BY ID
+    @Transactional(readOnly = true)
+    public StandupResponse getById(UUID id){
+        return standupResponseRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Standup Response does not exists"));
+    }
+
+//    DELETE STANDUP RESPONSE
+    @Transactional
+    public void deleteStandupResponse(UUID id){
+
+        StandupResponse standupResponse = standupResponseRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Standup Response does not exists"));
+
+        if(standupResponse.getStandupRun().getIsFinalized()){
+            throw  new IllegalStateException(
+                    "Cannot delete a response from a finalized standup run"
+            );
+        }
+
+        standupResponseRepository.delete(standupResponse);
     }
 }
