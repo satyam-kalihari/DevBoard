@@ -21,6 +21,7 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final NotificationService notificationService;
     private final LabelRepository labelRepository;
+    private final TaskActivityLogService taskActivityLogService;
 
 //    CREATE TASK
     @Transactional
@@ -108,14 +109,25 @@ public class TaskService {
 
 //    UPDATE TASK
     @Transactional
-    public Task updateTask(UUID id, UpdateTaskRequest request){
+    public Task updateTask(UUID id, UUID actorId, UpdateTaskRequest request){
         Task task = taskRepository.getByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("This task does not exists"));
 
+//        User actingUser = userRepository.findById(actorId)
+//                .orElseThrow(() -> new ResourceNotFoundException("Cannot find user.")); TODO
+
         if (request.getTitle() != null) task.setTitle(request.getTitle());
         if (request.getDescription() != null) task.setDescription(request.getDescription());
-        if (request.getStatus() != null) task.setStatus(request.getStatus());
-        if (request.getPriority() != null) task.setPriority(request.getPriority());
+        if (request.getStatus() != null) {
+//            String oldStatus = task.getStatus().name();
+            task.setStatus(request.getStatus());
+//            taskActivityLogService.logStatusChanged(task, actingUser, oldStatus, request.getStatus().name());
+        }
+        if (request.getPriority() != null) {
+//            String oldPriority = task.getPriority().name();
+            task.setPriority(request.getPriority());
+//            taskActivityLogService.logPriorityChanged(task, actingUser, oldPriority, request.getPriority().name());
+        }
         if (request.getStoryPoints() != null) task.setStoryPoints(request.getStoryPoints());
         if (request.getDueDate() != null) task.setDueDate(request.getDueDate());
 
