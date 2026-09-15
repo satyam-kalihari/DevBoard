@@ -9,7 +9,6 @@ import java.util.UUID;
 @Data
 public class CreateTaskCommentRequest {
 
-    @NotNull(message = "Task ID is required")
     private UUID taskId;
 
     @NotNull(message = "User ID is required")

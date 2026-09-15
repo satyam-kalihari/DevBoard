@@ -109,7 +109,7 @@ public class TaskService {
 
 //    UPDATE TASK
     @Transactional
-    public Task updateTask(UUID id, UUID actorId, UpdateTaskRequest request){
+    public Task updateTask(UUID id, UpdateTaskRequest request){
         Task task = taskRepository.getByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("This task does not exists"));
 

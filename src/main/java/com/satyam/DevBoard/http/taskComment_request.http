@@ -1,0 +1,23 @@
+### Create a comment
+@taskId = d80decf4-2758-4087-a8b6-4ecda9bf554a
+POST http://localhost:8080/api/v1/tasks/{{taskId}}/comments
+Content-Type: application/json
+
+{
+  "userId": "a7f372e2-6bd2-4a26-bac0-62ed64edd623",
+  "body": "This task needs a design review before we start."
+}
+
+### Get all comments for a task
+GET http://localhost:8080/api/v1/tasks/d80decf4-2758-4087-a8b6-4ecda9bf554a/comments
+
+### Update a comment
+PATCH http://localhost:8080/api/v1/tasks/comments/c1ebdd01-13ed-4e75-b254-867da49ba62f
+Content-Type: application/json
+
+{
+  "body": "Updated — design review is now scheduled for Friday."
+}
+
+### Delete a comment
+DELETE http://localhost:8080/api/v1/tasks/comments/{commentId}
