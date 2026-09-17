@@ -1,4 +1,4 @@
-CREATE TABLE standup_schedule_days (
+CREATE TABLE IF NOT EXISTS standup_schedule_days(
                                        standup_id  UUID        NOT NULL,
                                        day_of_week VARCHAR(10) NOT NULL,
 
