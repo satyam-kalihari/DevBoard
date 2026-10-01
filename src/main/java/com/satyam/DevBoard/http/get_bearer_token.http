@@ -1,0 +1,8 @@
+POST http://127.0.0.1:8334/realms/OAuth2-devboard/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password
+    &client_id=Devboard-project-management
+    &client_secret=p9sDHT1EnazinGeWeVjAevBeet8lykaxcOX7hFkGUUBOxm3n0LRwNi3s7riBHa0PQfqC2rfxBZkLoduGMMiiB0
+    &username=test_user
+    &password=test_user
