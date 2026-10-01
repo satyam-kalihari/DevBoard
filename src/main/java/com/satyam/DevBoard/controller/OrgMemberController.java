@@ -13,6 +13,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,10 +28,12 @@ public class OrgMemberController {
 
     @PostMapping
     public ResponseEntity<OrgMemberResponse> createOrgMember(
-            @Valid @RequestBody CreateOrgMemberRequest request
+            @Valid @RequestBody CreateOrgMemberRequest request,
+            @AuthenticationPrincipal Jwt jwt
             ){
 
-        OrgMember member = orgMemberService.createOrgMember(request);
+        UUID keycloakUserId = UUID.fromString(jwt.getSubject());
+        OrgMember member = orgMemberService.createOrgMember(request, keycloakUserId);
         return ResponseEntity.status(HttpStatus.CREATED).body(OrgMemberResponse.fromEntity(member));
     }
 

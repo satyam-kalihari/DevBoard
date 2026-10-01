@@ -10,6 +10,7 @@ import com.satyam.DevBoard.repository.OrganizationRepository;
 import com.satyam.DevBoard.repository.ProjectRepository;
 import com.satyam.DevBoard.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,6 +67,8 @@ public class ProjectService {
 
 //    UPDATE PROJECT
     @Transactional
+//    @PreAuthorize("hasRole('OWNER')") THIS CAN BE USERD FOR ADMIN DASHBOARD
+//    WILL USE DATABASE-DRIVEN AUTHORIZATION CHECK
     public Project updateProject(UUID id, UpdateProjectRequest request){
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("The Project does not exists"));

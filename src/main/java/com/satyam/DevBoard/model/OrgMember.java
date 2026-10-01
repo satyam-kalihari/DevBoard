@@ -38,6 +38,6 @@ public class OrgMember {
     private LocalDateTime joinedAt;
 
     public enum Role{
-        OWNER, MEMBER, VIEWER
+        OWNER, EDITOR, MEMBER, VIEWER
     }
 }

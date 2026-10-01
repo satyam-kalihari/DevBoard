@@ -4,10 +4,15 @@ import com.satyam.DevBoard.dto.request.CreateOrganizationRequest;
 import com.satyam.DevBoard.dto.request.UpdateOrganizationRequest;
 import com.satyam.DevBoard.exception.DuplicateResourceException;
 import com.satyam.DevBoard.exception.ResourceNotFoundException;
+import com.satyam.DevBoard.model.OrgMember;
 import com.satyam.DevBoard.model.Organization;
+import com.satyam.DevBoard.model.User;
+import com.satyam.DevBoard.repository.OrgMemberRepository;
 import com.satyam.DevBoard.repository.OrganizationRepository;
+import com.satyam.DevBoard.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,8 +23,15 @@ import java.util.UUID;
 public class OrganizationService {
 
     private final OrganizationRepository organizationRepository;
+    private final UserRepository userRepository;
+    private final OrgMemberRepository orgMemberRepository;
 
-    public Organization createOrganization(CreateOrganizationRequest request){
+    @Transactional
+    public Organization createOrganization(CreateOrganizationRequest request, UUID keycloakId){
+
+        User creator = userRepository.findByKeycloakId(keycloakId)
+                .orElseThrow(() -> new ResourceNotFoundException("Creator does not exists"));
+
         Organization organization = new Organization();
         organization.setName(request.getName());
         organization.setSlug(generateUniqueSlug(request.getSlug()));
@@ -27,8 +39,15 @@ public class OrganizationService {
         organization.setAvatarUrl(request.getAvatarUrl());
         organization.setLocation(request.getLocation());
         organization.setTimeZone((request.getTimeZone()));
+        Organization saved = organizationRepository.save(organization);
 
-        return organizationRepository.save(organization);
+        OrgMember owner = new OrgMember();
+        owner.setOrganization(saved);
+        owner.setUser(creator);
+        owner.setRole(OrgMember.Role.OWNER);
+        orgMemberRepository.save(owner);
+
+        return saved;
     }
 
     private String generateCode(String name){

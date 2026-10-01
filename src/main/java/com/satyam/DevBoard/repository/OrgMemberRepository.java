@@ -29,5 +29,17 @@ public interface OrgMemberRepository extends JpaRepository<OrgMember, UUID> {
             "WHERE om.organization.id = :orgId")
     List<OrgMember> findAllByOrgId(@Param("orgId") UUID orgId);
 
+    @Query("SELECT om FROM OrgMember om " +
+            "JOIN FETCH om.organization " +
+            "JOIN FETCH om.user " +
+            "WHERE om.organization.id = :orgId AND om.user.id = :userId")
+    OrgMember findByOrganizationIdAndUserId(@Param("orgId") UUID orgId ,@Param("userId") UUID userId);
+
+    @Query("SELECT om FROM OrgMember om " +
+            "JOIN FETCH om.organization " +
+            "JOIN FETCH om.user " +
+            "WHERE om.organization.id = :orgId AND om.user.keycloakId = :keycloakId")
+    Optional<OrgMember> findByOrganizationIdAndKeycloakId(@Param("orgId") UUID orgId ,@Param("keycloakId") UUID keycloakId);
+
     boolean existsByOrganizationIdAndUserId(UUID organizationId, UUID userId);
 }

@@ -19,13 +19,18 @@ import java.util.UUID;
 public class UserService {
     private final UserRepository userRepository;
 
-    public User createUser(CreateUserRequest request){
+    public User createUser(CreateUserRequest request, UUID keycloakUserId){
+
+        if (userRepository.existsUserByKeycloakId(keycloakUserId)){
+            throw new DuplicateResourceException("An account already exists by this Id");
+        }
 
         if (userRepository.existsByEmail(request.getEmail())){
             throw new DuplicateResourceException("An account with this email already exists.");
         }
 
         User user = new User();
+        user.setKeycloakId(keycloakUserId);
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPhone((request.getPhone()));

@@ -12,10 +12,10 @@ import com.satyam.DevBoard.repository.OrganizationRepository;
 import com.satyam.DevBoard.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,9 +26,13 @@ public class OrgMemberService {
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
     private final OrgMemberRepository orgMemberRepository;
+    private final AuthorizationService authorizationService;
 
     @Transactional
-    public OrgMember createOrgMember(CreateOrgMemberRequest request){
+    //ORGANIZATION MEMBER CAN ONLY BE CREATED BY OWNER OR EDITOR
+    public OrgMember createOrgMember(CreateOrgMemberRequest request, UUID keycloakUserId){
+
+        authorizationService.requiredRole(request.getOrgId(), keycloakUserId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR);
         Organization organization = organizationRepository.findById(request.getOrgId())
                 .orElseThrow(() -> new ResourceNotFoundException("Organization not in the database."));
 
