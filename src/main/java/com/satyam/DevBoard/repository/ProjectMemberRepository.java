@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -27,5 +28,22 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, UU
     )
     ProjectMember getByIdWithDetails(@Param("id") UUID id);
 
+    @Query(
+            "select pm from ProjectMember pm " +
+                    "join fetch pm.project p " +
+                    "join fetch p.organization " +
+                    "where pm.id = :id"
+    )
+    Optional<ProjectMember> getByIdWithOrg(@Param("id") UUID id);
+
     boolean existsByProjectIdAndUserId(UUID projectId, UUID userId);
+
+    @Query(
+            "select pm from ProjectMember pm " +
+                    "join fetch pm.project p " +
+                    "join fetch p.organization " +
+                    "where pm.id = :id " +
+                    "and pm.user.keycloakId = :keycloakId"
+    )
+    boolean existsByProjectIdAndKeycloakId(@Param("id") UUID id, @Param("keycloakId") UUID keycloakIdId);
 }

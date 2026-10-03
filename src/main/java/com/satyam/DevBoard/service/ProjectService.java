@@ -3,6 +3,7 @@ package com.satyam.DevBoard.service;
 import com.satyam.DevBoard.dto.request.CreateProjectRequest;
 import com.satyam.DevBoard.dto.request.UpdateProjectRequest;
 import com.satyam.DevBoard.exception.ResourceNotFoundException;
+import com.satyam.DevBoard.model.OrgMember;
 import com.satyam.DevBoard.model.Organization;
 import com.satyam.DevBoard.model.Project;
 import com.satyam.DevBoard.model.User;
@@ -25,10 +26,13 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
+    private final AuthorizationService authorizationService;
 
 //    CREATE PROJECT METHOD
     @Transactional
-    public Project createProject(UUID orgId, UUID userId, CreateProjectRequest request){
+    public Project createProject(UUID orgId, UUID userId, CreateProjectRequest request, UUID keycloakId){
+
+        authorizationService.requiredRole(orgId, keycloakId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR, OrgMember.Role.MEMBER);
 
         if (request.getStartDate() != null && request.getTargetDate() != null && request.getStartDate().isAfter(request.getTargetDate()) ){
             throw new IllegalArgumentException("Start date cannot be after target date");
@@ -69,9 +73,12 @@ public class ProjectService {
     @Transactional
 //    @PreAuthorize("hasRole('OWNER')") THIS CAN BE USERD FOR ADMIN DASHBOARD
 //    WILL USE DATABASE-DRIVEN AUTHORIZATION CHECK
-    public Project updateProject(UUID id, UpdateProjectRequest request){
+    public Project updateProject(UUID id, UpdateProjectRequest request, UUID keycloakId){
+
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("The Project does not exists"));
+
+        authorizationService.requiredRole(project.getOrganization().getId(), keycloakId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR, OrgMember.Role.MEMBER);
 
         if(request.getName() != null){
             project.setName(request.getName());
@@ -106,8 +113,9 @@ public class ProjectService {
 
 //    DELETE PROJECT METHOD
     @Transactional
-    public void deleteProject(UUID id){
+    public void deleteProject(UUID id, UUID keycloakId){
         Project project = getProjectById(id);
+        authorizationService.requiredRole(project.getOrganization().getId(), keycloakId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR, OrgMember.Role.MEMBER);
         projectRepository.delete(project);
 
     }

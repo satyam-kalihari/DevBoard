@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -37,7 +38,7 @@ public class TaskController {
         User actingUser = userRepository.findByKeycloakId(keycloakUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not provisioned"));
 
-        Task task = taskService.createTask(request);
+        Task task = taskService.createTask(request, keycloakUserId);
         return ResponseEntity.status(HttpStatus.CREATED).body(TaskResponse.fromEntity(task));
     }
 
@@ -50,15 +51,20 @@ public class TaskController {
     @PatchMapping("/{id}")
     public ResponseEntity<TaskResponse> updateTask(
             @PathVariable UUID id,
-            @Valid @RequestBody UpdateTaskRequest request
+            @Valid @RequestBody UpdateTaskRequest request,
+            @AuthenticationPrincipal Jwt jwt
     ) {
-        Task task = taskService.updateTask(id, request);
+
+        UUID keycloakId = UUID.fromString(Objects.requireNonNull(jwt.getSubject()));
+        Task task = taskService.updateTask(id, request, keycloakId);
         return ResponseEntity.ok(TaskResponse.fromEntity(task));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTask(@PathVariable UUID id) {
-        taskService.deleteTask(id);
+    public ResponseEntity<Void> deleteTask(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+
+        UUID keycloakId = UUID.fromString(Objects.requireNonNull(jwt.getSubject()));
+        taskService.deleteTask(id, keycloakId);
         return ResponseEntity.noContent().build();
     }
 }

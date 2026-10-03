@@ -41,5 +41,6 @@ public interface OrgMemberRepository extends JpaRepository<OrgMember, UUID> {
             "WHERE om.organization.id = :orgId AND om.user.keycloakId = :keycloakId")
     Optional<OrgMember> findByOrganizationIdAndKeycloakId(@Param("orgId") UUID orgId ,@Param("keycloakId") UUID keycloakId);
 
+    long countByOrganizationIdAndRole(UUID organizationId, OrgMember.Role role);
     boolean existsByOrganizationIdAndUserId(UUID organizationId, UUID userId);
 }

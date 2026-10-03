@@ -62,15 +62,20 @@ public class OrgMemberController {
     @PatchMapping("/{id}")
     public ResponseEntity<OrgMemberResponse> updateOrganization(
             @PathVariable UUID id,
-            @Valid @RequestBody UpdateOrgMemberRequest request
+            @Valid @RequestBody UpdateOrgMemberRequest request,
+            @AuthenticationPrincipal Jwt jwt
     ){
-        OrgMember member = orgMemberService.updateOrgMember(id, request);
+
+        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        OrgMember member = orgMemberService.updateOrgMember(id, request, keycloakId);
         return ResponseEntity.ok(OrgMemberResponse.fromEntity(member));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOrgMember(@PathVariable UUID id){
-        orgMemberService.deleteOrgMember(id);
+    public ResponseEntity<Void> deleteOrgMember(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt){
+
+        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        orgMemberService.deleteOrgMember(id, keycloakId);
         return ResponseEntity.noContent().build();
     }
 

@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -52,15 +53,19 @@ public class OrganizationController {
     @PatchMapping("/{id}")
     public ResponseEntity<OrganizationResponse> updateOrganization(
             @PathVariable UUID id,
-            @Valid @RequestBody UpdateOrganizationRequest request
+            @Valid @RequestBody UpdateOrganizationRequest request,
+            @AuthenticationPrincipal Jwt jwt
     ){
-        Organization organization = organizationService.updateOrganization(id, request);
+        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        Organization organization = organizationService.updateOrganization(id, request, keycloakId);
         return ResponseEntity.ok(OrganizationResponse.fromEntity(organization));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOrganization(@PathVariable UUID id){
-        organizationService.deleteOrganization(id);
+    public ResponseEntity<Void> deleteOrganization(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt){
+
+        UUID keycloakId = UUID.fromString(Objects.requireNonNull(jwt.getSubject()));
+        organizationService.deleteOrganization(id, keycloakId);
         return ResponseEntity.noContent().build();
     }
 }

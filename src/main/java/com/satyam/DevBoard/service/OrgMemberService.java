@@ -6,12 +6,15 @@ import com.satyam.DevBoard.exception.DuplicateResourceException;
 import com.satyam.DevBoard.exception.ResourceNotFoundException;
 import com.satyam.DevBoard.model.OrgMember;
 import com.satyam.DevBoard.model.Organization;
+import com.satyam.DevBoard.model.Task;
 import com.satyam.DevBoard.model.User;
 import com.satyam.DevBoard.repository.OrgMemberRepository;
 import com.satyam.DevBoard.repository.OrganizationRepository;
+import com.satyam.DevBoard.repository.TaskRepository;
 import com.satyam.DevBoard.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,12 +30,13 @@ public class OrgMemberService {
     private final UserRepository userRepository;
     private final OrgMemberRepository orgMemberRepository;
     private final AuthorizationService authorizationService;
+    private final TaskRepository taskRepository;
 
     @Transactional
     //ORGANIZATION MEMBER CAN ONLY BE CREATED BY OWNER OR EDITOR
-    public OrgMember createOrgMember(CreateOrgMemberRequest request, UUID keycloakUserId){
+    public OrgMember createOrgMember(CreateOrgMemberRequest request, UUID keycloakId){
 
-        authorizationService.requiredRole(request.getOrgId(), keycloakUserId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR);
+        authorizationService.requiredRole(request.getOrgId(), keycloakId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR);
         Organization organization = organizationRepository.findById(request.getOrgId())
                 .orElseThrow(() -> new ResourceNotFoundException("Organization not in the database."));
 
@@ -48,7 +52,12 @@ public class OrgMemberService {
         orgMember.setUser(user);
         orgMember.setRole(request.getRole());
 
-        return orgMemberRepository.save(orgMember);
+        try{
+            return orgMemberRepository.save(orgMember);
+        }
+        catch (DataIntegrityViolationException e){
+            throw new DuplicateResourceException("User is already a member of this organization");
+        }
     }
 
     @Transactional(readOnly = true)
@@ -70,9 +79,11 @@ public class OrgMemberService {
     }
 
     @Transactional
-    public OrgMember updateOrgMember(UUID id, UpdateOrgMemberRequest request){
+    public OrgMember updateOrgMember(UUID id, UpdateOrgMemberRequest request, UUID keycloakId){
+
         OrgMember orgMember = orgMemberRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Organization member not found"));
+        authorizationService.requiredRole(orgMember.getOrganization().getId(), keycloakId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR);
 
         if(request.getRole() != null){
             orgMember.setRole(request.getRole());
@@ -82,8 +93,40 @@ public class OrgMemberService {
     }
 
     @Transactional
-    public void deleteOrgMember(UUID id){
+    public void deleteOrgMember(UUID id, UUID keycloakId){
+        User caller = userRepository.findByKeycloakId(keycloakId)
+                .orElseThrow(() -> new ResourceNotFoundException("User does not exists"));
         OrgMember member = getOrgMemberById(id);
-        orgMemberRepository.delete(member);
+        boolean memberIsCaller = caller.getId().equals(member.getUser().getId());
+
+        if (member.getRole().equals(OrgMember.Role.OWNER)){
+            long membersAsOwner = orgMemberRepository.countByOrganizationIdAndRole(member.getOrganization().getId(), OrgMember.Role.OWNER);
+            if (membersAsOwner-1 == 0){
+                throw new IllegalStateException("Cannot remove the last owner of the organization. Transfer ownership to another user first, or delete the organization entirely.");
+            }
+        }
+
+        if (memberIsCaller){
+            unassignUserFromOrgTasks(member.getOrganization().getId(), member.getUser().getId());
+            orgMemberRepository.delete(member);
+        }
+        else {
+            unassignUserFromOrgTasks(member.getOrganization().getId(), member.getUser().getId());
+            authorizationService.requiredRole(member.getOrganization().getId(), keycloakId, OrgMember.Role.OWNER);
+            orgMemberRepository.delete(member);
+
+        }
+    }
+
+    private void unassignUserFromOrgTasks(UUID orgId, UUID userId) {
+        List<Task> tasks = taskRepository.findAllAssignedToUserInOrg(orgId, userId);
+
+        for (Task task : tasks) {
+            task.getAssignees().removeIf(u -> u.getId().equals(userId));
+            if (task.getAssignees().isEmpty()) {
+                task.setSprint(null);   // moves it to backlog — no sprint_id means backlog
+            }
+            taskRepository.save(task);
+        }
     }
 }

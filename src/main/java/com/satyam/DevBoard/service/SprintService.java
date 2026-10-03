@@ -4,16 +4,16 @@ import com.satyam.DevBoard.dto.request.CreateSprintRequest;
 import com.satyam.DevBoard.dto.request.UpdateSprintRequest;
 import com.satyam.DevBoard.exception.DuplicateResourceException;
 import com.satyam.DevBoard.exception.ResourceNotFoundException;
+import com.satyam.DevBoard.model.OrgMember;
 import com.satyam.DevBoard.model.Project;
 import com.satyam.DevBoard.model.Sprint;
-import com.satyam.DevBoard.model.Task;
-import com.satyam.DevBoard.repository.ProjectRepository;
-import com.satyam.DevBoard.repository.SprintRepository;
-import com.satyam.DevBoard.repository.TaskRepository;
+import com.satyam.DevBoard.model.User;
+import com.satyam.DevBoard.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.access.AccessDeniedException;
 import java.util.*;
 
 @Service
@@ -23,12 +23,24 @@ public class SprintService {
     private final ProjectRepository projectRepository;
     private final TaskRepository taskRepository;
     private final SprintRepository sprintRepository;
+    private final UserRepository userRepository;
+    private final ProjectMemberRepository projectMemberRepository;
+    private final AuthorizationService authorizationService;
 
 //    CREATE SPRINT
     @Transactional
-    public Sprint createSprint(CreateSprintRequest request){
+    public Sprint createSprint(CreateSprintRequest request, UUID keycloakId){
         Project project = projectRepository.findById(request.getProjectId())
                 .orElseThrow(() -> new ResourceNotFoundException("Project does not exists"));
+
+        User caller = userRepository.findByKeycloakId(keycloakId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not there"));
+
+        boolean isLeader = caller.getId() == project.getLeadUser().getId();
+
+        if(!isLeader){
+            throw new AccessDeniedException("Access Denied");
+        }
 
         if (request.getStartDate().isAfter(request.getEndDate())){
             throw new IllegalArgumentException("Start date cannot be after end date.");
@@ -51,7 +63,17 @@ public class SprintService {
 
 //    GET ALL SPRINT BY PROJECT ID
     @Transactional(readOnly = true)
-    public List<Sprint> getAllByProjectIdWithDetails(UUID id){
+    public List<Sprint> getAllByProjectIdWithDetails(UUID id, UUID keycloakId){
+        User caller = userRepository.findByKeycloakId(keycloakId)
+                .orElseThrow(() -> new ResourceNotFoundException("User does not exists."));
+
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Project does not exists"));
+
+        authorizationService.requiredRole(project.getOrganization().getId(), keycloakId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR);
+        if (!projectMemberRepository.existsByProjectIdAndUserId(id, caller.getId())){
+            throw new AccessDeniedException("Access Denied");
+        }
         return sprintRepository.findAllByProjectIdWithDetails(id);
     }
 
@@ -64,8 +86,18 @@ public class SprintService {
 
 //    UPDATE SPRINT
     @Transactional
-    public Sprint updateSprint(UUID id, UpdateSprintRequest request){
-        Sprint sprint = getSprintWithDetails(id);
+    public Sprint updateSprint(UUID id, UpdateSprintRequest request, UUID keycloakId){
+
+        Sprint sprint = sprintRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sprint does not exists"));
+
+        User caller = userRepository.findByKeycloakId(keycloakId)
+                .orElseThrow(() -> new ResourceNotFoundException("User does not exists"));
+
+        boolean isLeader = caller.getId() == sprint.getProject().getLeadUser().getId();
+        if(!isLeader){
+            throw new AccessDeniedException("Access Denied");
+        }
 
         if (request.getName() != null){
             sprint.setName(request.getName());
@@ -85,8 +117,17 @@ public class SprintService {
 
 //    DELETE SPRINT
     @Transactional
-    public void deleteSprint(UUID id){
-        Sprint sprint = getSprintWithDetails(id);
+    public void deleteSprint(UUID id, UUID keycloakId){
+        Sprint sprint = sprintRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sprint does not exists"));
+
+        User caller = userRepository.findByKeycloakId(keycloakId)
+                .orElseThrow(() -> new ResourceNotFoundException("User does not exists"));
+
+        boolean isLeader = caller.getId() == sprint.getProject().getLeadUser().getId();
+        if(!isLeader){
+            throw new AccessDeniedException("Access Denied");
+        }
         sprintRepository.delete(sprint);
     }
 

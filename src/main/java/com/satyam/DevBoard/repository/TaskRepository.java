@@ -36,4 +36,10 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     @Query("SELECT MAX(t.rank) FROM Task t WHERE t.project.id = :projectId " +
             "AND (:sprintId IS NULL AND t.sprint IS NULL OR t.sprint.id = :sprintId)")
     Integer findMaxRankByProjectIdAndSprintId(@Param("projectId") UUID projectId, @Param("sprintId") UUID sprintId);
+
+    @Query("SELECT DISTINCT t FROM Task t " +
+            "JOIN t.assignees a " +
+            "JOIN FETCH t.assignees " +
+            "WHERE t.project.organization.id = :orgId AND a.id = :userId")
+    List<Task> findAllAssignedToUserInOrg(@Param("orgId") UUID orgId, @Param("userId") UUID userId);
 }

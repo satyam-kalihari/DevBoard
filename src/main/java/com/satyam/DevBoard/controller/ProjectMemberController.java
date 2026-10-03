@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,10 +23,13 @@ public class ProjectMemberController {
 
     @PostMapping
     public ResponseEntity<ProjectMemberResponse> createProjectMember(
-            @Valid @RequestBody CreateProjectMemberRequest request
+            @Valid @RequestBody CreateProjectMemberRequest request,
+            @AuthenticationPrincipal Jwt jwt
             )
     {
-        ProjectMember member = projectMemberService.createProjectMember(request);
+
+        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        ProjectMember member = projectMemberService.createProjectMember(request, keycloakId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ProjectMemberResponse.fromEntity(member));
     }
@@ -56,8 +61,10 @@ public class ProjectMemberController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProjectMember(@PathVariable UUID id){
-        projectMemberService.deleteProjectMember(id);
+    public ResponseEntity<Void> deleteProjectMember(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt){
+
+        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        projectMemberService.deleteProjectMember(id, keycloakId);
 
         return ResponseEntity.noContent().build();
     }

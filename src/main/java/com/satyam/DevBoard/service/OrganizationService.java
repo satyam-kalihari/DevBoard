@@ -25,6 +25,7 @@ public class OrganizationService {
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
     private final OrgMemberRepository orgMemberRepository;
+    private final AuthorizationService authorizationService;
 
     @Transactional
     public Organization createOrganization(CreateOrganizationRequest request, UUID keycloakId){
@@ -93,7 +94,10 @@ public class OrganizationService {
         return organizations;
     }
 
-    public Organization updateOrganization(UUID id, UpdateOrganizationRequest request){
+    public Organization updateOrganization(UUID id, UpdateOrganizationRequest request, UUID keycloakId){
+
+        authorizationService.requiredRole(id, keycloakId, OrgMember.Role.OWNER);
+
         Organization org = organizationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Organization not found"));
 
@@ -124,8 +128,9 @@ public class OrganizationService {
         return organizationRepository.save(org);
     }
 
-    public void deleteOrganization(UUID id){
+    public void deleteOrganization(UUID id, UUID keycloakId){
         Organization org = getOrganizationById(id);
+        authorizationService.requiredRole(org.getId(), keycloakId, OrgMember.Role.OWNER);
         organizationRepository.delete(org);
     }
 }

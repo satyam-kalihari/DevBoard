@@ -16,6 +16,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,9 +34,12 @@ public class ProjectController {
 
     @PostMapping
     public ResponseEntity<ProjectResponse> createProject(
-            @Valid @RequestBody CreateProjectRequest request
-    ){
-        Project project = projectService.createProject(request.getOrgId(), request.getUserId(), request);
+            @Valid @RequestBody CreateProjectRequest request,
+            @AuthenticationPrincipal Jwt jwt
+            ){
+
+        UUID keycloak = UUID.fromString(jwt.getSubject());
+        Project project = projectService.createProject(request.getOrgId(), request.getUserId(), request, keycloak);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ProjectResponse.fromEntity(project));
     }
@@ -75,8 +80,10 @@ public class ProjectController {
     }
 
     @GetMapping("/{projectId}/sprints")
-    public ResponseEntity<List<SprintResponse>> getAllByProjectId(@PathVariable UUID projectId){
-        List<SprintResponse> sprints = sprintService.getAllByProjectIdWithDetails(projectId)
+    public ResponseEntity<List<SprintResponse>> getAllByProjectId(@PathVariable UUID projectId, @AuthenticationPrincipal Jwt jwt){
+
+        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        List<SprintResponse> sprints = sprintService.getAllByProjectIdWithDetails(projectId, keycloakId)
                 .stream()
                 .map(SprintResponse::fromEntity)
                 .toList();
@@ -94,17 +101,21 @@ public class ProjectController {
     @PatchMapping("/{id}")
     public ResponseEntity<ProjectResponse> updateProject(
             @PathVariable UUID id,
-            @Valid @RequestBody UpdateProjectRequest request
+            @Valid @RequestBody UpdateProjectRequest request,
+            @AuthenticationPrincipal Jwt jwt
             ){
 
-        Project project = projectService.updateProject(id, request);
+        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        Project project = projectService.updateProject(id, request, keycloakId);
 
         return ResponseEntity.status(HttpStatus.OK).body(ProjectResponse.fromEntity(project));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProject(@PathVariable UUID id){
-        projectService.deleteProject(id);
+    public ResponseEntity<Void> deleteProject(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt){
+
+        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        projectService.deleteProject(id, keycloakId);
         return ResponseEntity.noContent().build();
     }
 }

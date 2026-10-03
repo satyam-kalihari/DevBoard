@@ -11,6 +11,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,9 +27,12 @@ public class SprintController {
 
     @PostMapping
     public ResponseEntity<SprintResponse> createSprint(
-            @Valid @RequestBody CreateSprintRequest request
+            @Valid @RequestBody CreateSprintRequest request,
+            @AuthenticationPrincipal Jwt jwt
             ){
-        Sprint sprint = sprintService.createSprint(request);
+
+        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        Sprint sprint = sprintService.createSprint(request, keycloakId);
         return ResponseEntity.status(HttpStatus.CREATED).body(SprintResponse.fromEntity(sprint));
     }
 
@@ -50,16 +55,21 @@ public class SprintController {
     @PatchMapping("/{id}")
     public ResponseEntity<SprintResponse> updateSprint(
             @PathVariable UUID id,
-            @Valid @RequestBody UpdateSprintRequest request
+            @Valid @RequestBody UpdateSprintRequest request,
+            @AuthenticationPrincipal Jwt jwt
             ){
-        Sprint sprint = sprintService.updateSprint(id, request);
+
+        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        Sprint sprint = sprintService.updateSprint(id, request, keycloakId);
 
         return ResponseEntity.ok(SprintResponse.fromEntity(sprint));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSprint(@PathVariable UUID id){
-        sprintService.deleteSprint(id);
+    public ResponseEntity<Void> deleteSprint(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt){
+
+        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        sprintService.deleteSprint(id, keycloakId);
         return ResponseEntity.noContent().build();
     }
 }

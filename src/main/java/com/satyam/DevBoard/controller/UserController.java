@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.UUID;
 
@@ -60,8 +61,10 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUserById(@PathVariable UUID id){
-        userService.deleteUser(id);
+    public ResponseEntity<Void> deleteUserById(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) throws AccessDeniedException {
+
+        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        userService.deleteUser(id, keycloakId);
         return ResponseEntity.noContent().build();
     }
 }

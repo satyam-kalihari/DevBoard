@@ -10,6 +10,7 @@ import com.satyam.DevBoard.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -69,9 +70,16 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public void deleteUser(UUID id){
+    public void deleteUser(UUID id, UUID keycloakId) throws AccessDeniedException {
+        User caller = userRepository.findByKeycloakId(keycloakId)
+                .orElseThrow(() -> new ResourceNotFoundException("The caller does not exists"));
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User does not exist"));
+
+        if (caller.getId() != user.getId()){
+            throw new AccessDeniedException("You do not have the right to delete this account");
+        }
+
         userRepository.delete(user);
     }
 }

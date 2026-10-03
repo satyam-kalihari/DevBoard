@@ -22,13 +22,17 @@ public class TaskService {
     private final NotificationService notificationService;
     private final LabelRepository labelRepository;
     private final TaskActivityLogService taskActivityLogService;
+    private final AuthorizationService authorizationService;
+    private final ProjectMemberRepository projectMemberRepository;
 
 //    CREATE TASK
     @Transactional
-    public Task createTask(CreateTaskRequest request){
+    public Task createTask(CreateTaskRequest request,UUID keycloakId){
 
         Project project = projectRepository.findById(request.getProjectId())
                 .orElseThrow(() -> new ResourceNotFoundException("The project you are trying to fetch does not exist"));
+
+        authorizationService.requiredRole(project.getOrganization().getId(), keycloakId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR, OrgMember.Role.MEMBER);
 
         Sprint sprint = null;
         if (request.getSprintId() != null) {
@@ -109,24 +113,26 @@ public class TaskService {
 
 //    UPDATE TASK
     @Transactional
-    public Task updateTask(UUID id, UpdateTaskRequest request){
+    public Task updateTask(UUID id, UpdateTaskRequest request, UUID keycloakId){
         Task task = taskRepository.getByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("This task does not exists"));
 
-//        User actingUser = userRepository.findById(actorId)
-//                .orElseThrow(() -> new ResourceNotFoundException("Cannot find user.")); TODO
+        User actingUser = userRepository.findByKeycloakId(keycloakId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cannot find user."));
+
+        authorizationService.requiredRole(task.getProject().getOrganization().getId(), keycloakId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR, OrgMember.Role.MEMBER);
 
         if (request.getTitle() != null) task.setTitle(request.getTitle());
         if (request.getDescription() != null) task.setDescription(request.getDescription());
         if (request.getStatus() != null) {
-//            String oldStatus = task.getStatus().name();
+            String oldStatus = task.getStatus().name();
             task.setStatus(request.getStatus());
-//            taskActivityLogService.logStatusChanged(task, actingUser, oldStatus, request.getStatus().name());
+            taskActivityLogService.logStatusChanged(task, actingUser, oldStatus, request.getStatus().name());
         }
         if (request.getPriority() != null) {
-//            String oldPriority = task.getPriority().name();
+            String oldPriority = task.getPriority().name();
             task.setPriority(request.getPriority());
-//            taskActivityLogService.logPriorityChanged(task, actingUser, oldPriority, request.getPriority().name());
+            taskActivityLogService.logPriorityChanged(task, actingUser, oldPriority, request.getPriority().name());
         }
         if (request.getStoryPoints() != null) task.setStoryPoints(request.getStoryPoints());
         if (request.getDueDate() != null) task.setDueDate(request.getDueDate());
@@ -158,10 +164,18 @@ public class TaskService {
     }
 
     @Transactional
-    public void deleteTask(UUID id) {
+    public void deleteTask(UUID id, UUID keycloakId) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found."));
-        taskRepository.delete(task);
+
+        boolean isMember = projectMemberRepository.existsByProjectIdAndKeycloakId(task.getProject().getId(), keycloakId);
+        if (isMember){
+            taskRepository.delete(task);
+        }
+        else {
+            authorizationService.requiredRole(task.getProject().getOrganization().getId(), keycloakId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR);
+            taskRepository.delete(task);
+        }
     }
 
 }
