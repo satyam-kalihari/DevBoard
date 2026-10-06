@@ -2,13 +2,16 @@ package com.satyam.DevBoard.service;
 
 import com.satyam.DevBoard.dto.request.CreateTaskRequest;
 import com.satyam.DevBoard.dto.request.UpdateTaskRequest;
+import com.satyam.DevBoard.event.TaskAssignedEvent;
 import com.satyam.DevBoard.exception.ResourceNotFoundException;
 import com.satyam.DevBoard.model.*;
 import com.satyam.DevBoard.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.*;
 
 @Service
@@ -24,6 +27,7 @@ public class TaskService {
     private final TaskActivityLogService taskActivityLogService;
     private final AuthorizationService authorizationService;
     private final ProjectMemberRepository projectMemberRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
 //    CREATE TASK
     @Transactional
@@ -67,7 +71,7 @@ public class TaskService {
             assignees = userRepository.findAllById(request.getAssigneesIds());
 
             if(assignees.size() != request.getAssigneesIds().size()){
-                throw new ResourceNotFoundException("One or more assignees not found");
+                throw new ResourceNotFoundException("One or more assignees not found");//future mai kon se assignees nahi hai to vo bhi batana padega
             }
         }
 
@@ -80,7 +84,17 @@ public class TaskService {
 
         Task save = taskRepository.save(task);
         for (User assignee : assignees){
-            notificationService.notifyTaskAssigned(save, assignee);
+            eventPublisher.publishEvent(
+                    new TaskAssignedEvent(
+                            UUID.randomUUID(),
+                            save.getId(),
+                            save.getTitle(),
+                            project.getId(),
+                            project.getOrganization().getId(),
+                            assignee.getId(),
+                            Instant.now()
+                    )
+            );
         }
 
         return save;

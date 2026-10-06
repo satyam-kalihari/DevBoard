@@ -2,6 +2,7 @@ package com.satyam.DevBoard.service;
 
 import com.satyam.DevBoard.dto.request.CreateNotificationRequest;
 import com.satyam.DevBoard.dto.request.UpdateNotificationRequest;
+import com.satyam.DevBoard.event.TaskAssignedEvent;
 import com.satyam.DevBoard.exception.ResourceNotFoundException;
 import com.satyam.DevBoard.model.Notification;
 import com.satyam.DevBoard.model.Organization;
@@ -45,16 +46,16 @@ public class NotificationService {
     }
 
     @Transactional
-    public void notifyTaskAssigned(Task task, User assignee){
+    public void notifyTaskAssigned(TaskAssignedEvent event){
 
         CreateNotificationRequest notificationRequest = new CreateNotificationRequest();
-        notificationRequest.setUserId(assignee.getId());
-        notificationRequest.setOrgId(task.getProject().getOrganization().getId());
-        notificationRequest.setTitle(task.getTitle());
+        notificationRequest.setUserId(event.assigneeId());
+        notificationRequest.setOrgId(event.orgId());
+        notificationRequest.setTitle(event.taskTitle());
         notificationRequest.setType(Notification.Type.TASK_ASSIGNED);
         notificationRequest.setPayload(Map.of(
-                "taskId", task.getId().toString(),
-                "projectId", task.getProject().getId().toString()
+                "taskId", event.taskId(),
+                "projectId", event.projectId()
         ));
 
         createNotification(notificationRequest);

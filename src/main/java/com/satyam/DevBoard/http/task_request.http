@@ -1,21 +1,22 @@
 @baseUrl = http://localhost:8080/api/v1
-@projectId = 2439a7fe-b003-4143-9e67-41d2bf72f3f5
+@projectId = 7da9834d-23c5-42e4-98d4-265c379b91f4
 @sprintId = 3eb8cf0a-5b05-4d63-95e3-9897d1af538e
-@taskId = d80decf4-2758-4087-a8b6-4ecda9bf554a
-@userId = a7f372e2-6bd2-4a26-bac0-62ed64edd623
+@taskId = dd5503a7-c741-4b6a-8bda-aedd01431794
+@userId = 3fc6b83b-b45b-44c3-9c23-1d3ddbef7d26
 @labelId = 741a8c74-aaf6-445f-b478-f276bb5fa56f
 
 ### Create Task (Backlog - No Sprint)
 POST {{baseUrl}}/tasks
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJZeXFoalFJU1ZLNWZ4Yk1weUFGY3ZQcnVvejdhYTZsLTJwMkVHUG9kdEI0In0.eyJleHAiOjE3OTEyOTY3MDksImlhdCI6MTc5MTI5NjQwOSwianRpIjoib25ydHJvOjhhZjQwMjE5LWNiYjctNjRiYi0yZjg3LWIyYTJiNGY5MWM2NiIsImlzcyI6Imh0dHA6Ly8xMjcuMC4wLjE6ODMzNC9yZWFsbXMvT0F1dGgyLWRldmJvYXJkIiwiYXVkIjoiYWNjb3VudCIsInN1YiI6IjQzYWMxMDNjLTJkYmItNDM2YS1iMTJkLTJjZDllMTY0MjExNyIsInR5cCI6IkJlYXJlciIsImF6cCI6IkRldmJvYXJkLXByb2plY3QtbWFuYWdlbWVudCIsInNpZCI6IndqN1d1RTFpcnFjTVhVdUs3bVBFSFRWSyIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiLyoiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIk9XTkVSIiwib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiIsImRlZmF1bHQtcm9sZXMtb2F1dGgyLWRldmJvYXJkIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJuYW1lIjoidGVzdCB1c2VyIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidGVzdF91c2VyIiwiZ2l2ZW5fbmFtZSI6InRlc3QiLCJmYW1pbHlfbmFtZSI6InVzZXIiLCJlbWFpbCI6InRlc3RAZ21haWwuY29tIn0.RDzKs3nkJVOL30Lmm2wF2YM2Q9pYBdsFaouB5-yx9S8lSnyzD_g1IRtUSvW8nVkhQ52KKZ4YjdTZ35cdo3t9HA-61f8G096tboLv-KyblPIUbh3fvBRj1r-zpVMv38AJF3OGP2c91BauHXBn08mSskuAYdTOyQRcvKv9o99DTUOpOVGyI3d79a0Rw3SpJ1qPfYK86TrNP0rFCPRehJxft3xnNJyOnBmprRL_pCYJ-nhFWGOXZHuMby1T2ONx5Whac27heS8AvQxal0jkeuSfCBixFYZy0EARGK_-fSyXLramEG_4FxHVMy0eh0PqQ7HB0wIvB26eYKRArS-W-BwUcA
 Content-Type: application/json
 
 {
   "projectId": "{{projectId}}",
-  "title": "Set up database schema",
-  "description": "Create PostgreSQL tables for projects and tasks.",
+  "title": "Testing 2 Kafka",
+  "description": "Test if Kafka is working fine or not. 2",
   "priority": "HIGH",
-  "storyPoints": 5,
-  "dueDate": "2026-09-30",
+  "storyPoints": 2,
+  "dueDate": "2026-10-11",
   "assigneesIds": ["{{userId}}"],
   "labelIds": ["{{labelId}}"]
 }
