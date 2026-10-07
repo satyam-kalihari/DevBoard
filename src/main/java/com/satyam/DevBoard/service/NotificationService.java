@@ -4,6 +4,7 @@ import com.satyam.DevBoard.dto.request.CreateNotificationRequest;
 import com.satyam.DevBoard.dto.request.UpdateNotificationRequest;
 import com.satyam.DevBoard.event.TaskAssignedEvent;
 import com.satyam.DevBoard.exception.ResourceNotFoundException;
+import com.satyam.DevBoard.messaging.ProcessedEventStore;
 import com.satyam.DevBoard.model.Notification;
 import com.satyam.DevBoard.model.Organization;
 import com.satyam.DevBoard.model.Task;
@@ -12,6 +13,7 @@ import com.satyam.DevBoard.repository.NotificationRepository;
 import com.satyam.DevBoard.repository.OrganizationRepository;
 import com.satyam.DevBoard.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
@@ -26,6 +29,7 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final OrganizationRepository organizationRepository;
     private final NotificationRepository notificationRepository;
+    private final ProcessedEventStore processedEventStore;
 
     @Transactional
     public Notification createNotification(CreateNotificationRequest request){
@@ -47,6 +51,11 @@ public class NotificationService {
 
     @Transactional
     public void notifyTaskAssigned(TaskAssignedEvent event){
+
+        if(!processedEventStore.markedProcessed("notifications", event.eventId())){
+            log.info("Skipping duplicate event {}", event.eventId());
+            return;
+        }
 
         CreateNotificationRequest notificationRequest = new CreateNotificationRequest();
         notificationRequest.setUserId(event.assigneeId());
