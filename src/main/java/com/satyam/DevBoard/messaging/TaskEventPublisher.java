@@ -2,6 +2,7 @@ package com.satyam.DevBoard.messaging;
 
 import com.satyam.DevBoard.config.KafkaTopicConfig;
 import com.satyam.DevBoard.event.TaskAssignedEvent;
+import com.satyam.DevBoard.event.TaskEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -17,7 +18,7 @@ public class TaskEventPublisher {
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onTaskAssigned(TaskAssignedEvent event){
+    public void onTaskAssigned(TaskEvent event){
         kafkaTemplate.send(KafkaTopicConfig.TASK_EVENTS, event.taskId().toString(), event)
                 .whenComplete((result, ex) -> {
                     if (ex != null){

@@ -7,7 +7,6 @@ import com.satyam.DevBoard.exception.ResourceNotFoundException;
 import com.satyam.DevBoard.messaging.ProcessedEventStore;
 import com.satyam.DevBoard.model.Notification;
 import com.satyam.DevBoard.model.Organization;
-import com.satyam.DevBoard.model.Task;
 import com.satyam.DevBoard.model.User;
 import com.satyam.DevBoard.repository.NotificationRepository;
 import com.satyam.DevBoard.repository.OrganizationRepository;
@@ -54,6 +53,10 @@ public class NotificationService {
 
         if(!processedEventStore.markedProcessed("notifications", event.eventId())){
             log.info("Skipping duplicate event {}", event.eventId());
+            return;
+        }
+        if (event.actorId() != null && event.actorId().equals(event.assigneeId())){
+            log.info("Skipping self-assignment notification for {}", event.eventId());
             return;
         }
 

@@ -3,6 +3,7 @@ package com.satyam.DevBoard.service;
 import com.satyam.DevBoard.dto.request.CreateTaskRequest;
 import com.satyam.DevBoard.dto.request.UpdateTaskRequest;
 import com.satyam.DevBoard.event.TaskAssignedEvent;
+import com.satyam.DevBoard.event.TaskCreatedEvent;
 import com.satyam.DevBoard.exception.ResourceNotFoundException;
 import com.satyam.DevBoard.model.*;
 import com.satyam.DevBoard.repository.*;
@@ -36,7 +37,7 @@ public class TaskService {
         Project project = projectRepository.findById(request.getProjectId())
                 .orElseThrow(() -> new ResourceNotFoundException("The project you are trying to fetch does not exist"));
 
-        authorizationService.requiredRole(project.getOrganization().getId(), keycloakId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR, OrgMember.Role.MEMBER);
+        User actor = authorizationService.requiredRole(project.getOrganization().getId(), keycloakId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR, OrgMember.Role.MEMBER);
 
         Sprint sprint = null;
         if (request.getSprintId() != null) {
@@ -83,6 +84,20 @@ public class TaskService {
         task.setAssignees(assignees);
 
         Task save = taskRepository.save(task);
+
+        UUID orgId = project.getOrganization().getId();
+        eventPublisher.publishEvent(new TaskCreatedEvent(
+                UUID.randomUUID(),
+                save.getId(),
+                save.getTitle(),
+                project.getId(),
+                orgId,
+                actor.getId(),
+                save.getStatus().name(),
+                save.getPriority().name(),
+                Instant.now()
+        ));
+
         for (User assignee : assignees){
             eventPublisher.publishEvent(
                     new TaskAssignedEvent(
@@ -92,10 +107,13 @@ public class TaskService {
                             project.getId(),
                             project.getOrganization().getId(),
                             assignee.getId(),
+                            null,
                             Instant.now()
                     )
             );
         }
+
+
 
         return save;
     }

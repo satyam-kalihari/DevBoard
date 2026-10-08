@@ -5,19 +5,25 @@ import com.satyam.DevBoard.event.TaskAssignedEvent;
 import com.satyam.DevBoard.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@KafkaListener(topics = KafkaTopicConfig.TASK_EVENTS, groupId = "devboard-notifications")
 public class NotificationEventConsumer {
 
     private final NotificationService notificationService;
 
-    @KafkaListener(topics = KafkaTopicConfig.TASK_EVENTS, groupId = "devboard-notifications")
+    @KafkaHandler
     public void onTaskAssigned(TaskAssignedEvent event){
         log.info("Received {} for assignee {}", event.eventId(), event.assigneeId());
         notificationService.notifyTaskAssigned(event);
+    }
+
+    @KafkaHandler(isDefault = true)
+    public void ignoreOthers(Object event) {
     }
 }

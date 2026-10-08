@@ -1,6 +1,7 @@
 package com.satyam.DevBoard.service;
 
 import com.satyam.DevBoard.exception.ResourceNotFoundException;
+import com.satyam.DevBoard.messaging.ProcessedEventStore;
 import com.satyam.DevBoard.model.Task;
 import com.satyam.DevBoard.model.TaskActivityLog;
 import com.satyam.DevBoard.model.User;
@@ -8,6 +9,7 @@ import com.satyam.DevBoard.repository.TaskActivityLogRepository;
 import com.satyam.DevBoard.repository.TaskRepository;
 import com.satyam.DevBoard.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TaskActivityLogService {
@@ -22,10 +25,32 @@ public class TaskActivityLogService {
     private final TaskActivityLogRepository taskActivityLogRepository;
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final ProcessedEventStore processedEventStore;
 
     // ── Core log method ───────────────────────────────────────────────────────
     // Called internally by TaskService whenever something changes on a task.
     // Never exposed directly through an HTTP endpoint.
+
+    @Transactional
+    public void recordFromEvent(UUID eventId, UUID taskId, UUID actorId, String actionType,
+                                Map<String, Object> before, Map<String, Object> after) {
+        if (actorId == null) {
+            log.warn("Skipping event {} with no actor", eventId);
+            return;
+        }
+        if (!processedEventStore.markedProcessed("audit", eventId)) {
+            log.info("Skipping duplicate audit event {}", eventId);
+            return;
+        }
+
+        TaskActivityLog entry = new TaskActivityLog();
+        entry.setTask(taskRepository.getReferenceById(taskId));
+        entry.setActor(userRepository.getReferenceById(actorId));
+        entry.setActionType(actionType);
+        entry.setBeforeState(before);
+        entry.setAfterState(after);
+        taskActivityLogRepository.save(entry);
+    }
 
     @Transactional
     public TaskActivityLog log(
