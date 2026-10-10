@@ -3,14 +3,13 @@ package com.satyam.DevBoard.event;
 import java.time.Instant;
 import java.util.UUID;
 
-public record TaskStatusChangedEvent(
+public record TaskStatusChangedAuditEvent(
         UUID eventId,
         UUID taskId,
-        String taskTitle,
-        UUID projectId,
-        UUID orgId,
+        String title,
         UUID actorId,
-        String status,
+        String oldStatus,
+        String newStatus,
         Instant occurredAt
 ) implements TaskEvent {
 }

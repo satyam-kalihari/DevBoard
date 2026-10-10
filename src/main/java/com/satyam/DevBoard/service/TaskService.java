@@ -4,6 +4,8 @@ import com.satyam.DevBoard.dto.request.CreateTaskRequest;
 import com.satyam.DevBoard.dto.request.UpdateTaskRequest;
 import com.satyam.DevBoard.event.TaskAssignedEvent;
 import com.satyam.DevBoard.event.TaskCreatedEvent;
+import com.satyam.DevBoard.event.TaskStatusChangedAuditEvent;
+import com.satyam.DevBoard.event.TaskUnassignedEvent;
 import com.satyam.DevBoard.exception.ResourceNotFoundException;
 import com.satyam.DevBoard.model.*;
 import com.satyam.DevBoard.repository.*;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -149,17 +152,78 @@ public class TaskService {
         Task task = taskRepository.getByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("This task does not exists"));
 
-        User actingUser = userRepository.findByKeycloakId(keycloakId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cannot find user."));
-
-        authorizationService.requiredRole(task.getProject().getOrganization().getId(), keycloakId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR, OrgMember.Role.MEMBER);
+        User actingUser = authorizationService.requiredRole(task.getProject().getOrganization().getId(), keycloakId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR, OrgMember.Role.MEMBER);
 
         if (request.getTitle() != null) task.setTitle(request.getTitle());
         if (request.getDescription() != null) task.setDescription(request.getDescription());
-        if (request.getStatus() != null) {
+
+        if (request.getAssigneeIds() != null){
+            Set<UUID> currentAssigneeIds = task.getAssignees().stream()
+                    .map(User::getId)
+                    .collect(Collectors.toSet());
+            Set<UUID> incomingAssigneeIds = new HashSet<>(request.getAssigneeIds());
+
+            //TO ADD
+            Set<UUID> toAdd = new HashSet<>(incomingAssigneeIds);
+            toAdd.removeAll(currentAssigneeIds);
+            List<User> toAddUser = userRepository.findAllById(toAdd);
+
+            //TO REMOVE
+            Set<UUID> toRemove = new HashSet<>(currentAssigneeIds);
+            toRemove.removeAll(incomingAssigneeIds);
+            List<User> toRemoveUser = userRepository.findAllById(toRemove);
+
+            if (!toAdd.isEmpty() || !toRemove.isEmpty()){
+                List<User> newAssignees = userRepository.findAllById(incomingAssigneeIds);
+                if(newAssignees.size() != request.getAssigneeIds().size()){
+                    throw new ResourceNotFoundException("One or more assignees not found");
+                }
+                task.getAssignees().clear();
+                task.getAssignees().addAll(newAssignees);
+
+                //NOTIFY NEW ASSIGNEES
+                for (User newAssignee : toAddUser){
+                    eventPublisher.publishEvent(new TaskAssignedEvent(
+                            UUID.randomUUID(),
+                            task.getId(),
+                            task.getTitle(),
+                            task.getProject().getId(),
+                            task.getProject().getOrganization().getId(),
+                            newAssignee.getId(),
+                            actingUser.getId(),
+                            Instant.now()
+                    ));
+                }
+
+                //NOTIFY REMOVED ASSIGNEE
+                for (UUID removedId : toRemove) {
+                    eventPublisher.publishEvent(new TaskUnassignedEvent(
+                            UUID.randomUUID(),
+                            task.getId(),
+                            task.getTitle(),
+                            task.getProject().getId(),
+                            task.getProject().getOrganization().getId(),
+                            actingUser.getId(),
+                            removedId,
+                            Instant.now()
+                    ));
+                }
+            }
+        }
+
+        if (request.getStatus() != null && !request.getStatus().name().equals(task.getStatus().name())) {
             String oldStatus = task.getStatus().name();
             task.setStatus(request.getStatus());
-            taskActivityLogService.logStatusChanged(task, actingUser, oldStatus, request.getStatus().name());
+//            taskActivityLogService.logStatusChanged(task, actingUser, oldStatus, request.getStatus().name());
+            eventPublisher.publishEvent(new TaskStatusChangedAuditEvent(
+                    UUID.randomUUID(),
+                    task.getId(),
+                    task.getTitle(),
+                    actingUser.getId(),
+                    oldStatus,
+                    request.getStatus().name(),
+                    Instant.now()
+            ));
         }
         if (request.getPriority() != null) {
             String oldPriority = task.getPriority().name();
@@ -178,12 +242,6 @@ public class TaskService {
             Task parentTask = taskRepository.findById(request.getParentTaskId())
                     .orElseThrow(() -> new ResourceNotFoundException("Parent task not found."));
             task.setParentTask(parentTask);
-        }
-
-        if (request.getAssigneeIds() != null){
-            List<User> users = userRepository.findAllById(request.getAssigneeIds());
-            task.getAssignees().clear();
-            task.getAssignees().addAll(users);
         }
 
         if (request.getLabelIds() != null){

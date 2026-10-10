@@ -3,6 +3,8 @@ package com.satyam.DevBoard.messaging;
 import com.satyam.DevBoard.config.KafkaTopicConfig;
 import com.satyam.DevBoard.event.TaskAssignedEvent;
 import com.satyam.DevBoard.event.TaskCreatedEvent;
+import com.satyam.DevBoard.event.TaskStatusChangedAuditEvent;
+import com.satyam.DevBoard.event.TaskUnassignedEvent;
 import com.satyam.DevBoard.model.TaskActivityLog;
 import com.satyam.DevBoard.service.TaskActivityLogService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,21 @@ public class AuditEventConsumer {
         activityLogService.recordFromEvent(e.eventId(), e.taskId(), e.actorId(),
                 TaskActivityLog.ACTION_ASSIGNEE_ADDED, null,
                 Map.of("userId", e.assigneeId().toString()));
+    }
+
+    @KafkaHandler
+    public void onTaskUnassigned(TaskUnassignedEvent e) {
+        activityLogService.recordFromEvent(e.eventId(), e.taskId(), e.actorId(),
+                TaskActivityLog.ACTION_ASSIGNEE_REMOVED, null,
+                Map.of("userId", e.assigneeId().toString()));
+    }
+
+    @KafkaHandler
+    public void onTaskStatusChange(TaskStatusChangedAuditEvent e){
+        activityLogService.recordFromEvent(e.eventId(), e.taskId(), e.actorId(),
+                TaskActivityLog.ACTION_STATUS_CHANGED,
+                Map.of("old status", e.oldStatus()),
+                Map.of("new status", e.newStatus()));
     }
 
     @KafkaHandler(isDefault = true)

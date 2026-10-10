@@ -3,6 +3,7 @@ package com.satyam.DevBoard.service;
 import com.satyam.DevBoard.dto.request.CreateNotificationRequest;
 import com.satyam.DevBoard.dto.request.UpdateNotificationRequest;
 import com.satyam.DevBoard.event.TaskAssignedEvent;
+import com.satyam.DevBoard.event.TaskUnassignedEvent;
 import com.satyam.DevBoard.exception.ResourceNotFoundException;
 import com.satyam.DevBoard.messaging.ProcessedEventStore;
 import com.satyam.DevBoard.model.Notification;
@@ -65,6 +66,31 @@ public class NotificationService {
         notificationRequest.setOrgId(event.orgId());
         notificationRequest.setTitle(event.taskTitle());
         notificationRequest.setType(Notification.Type.TASK_ASSIGNED);
+        notificationRequest.setPayload(Map.of(
+                "taskId", event.taskId(),
+                "projectId", event.projectId()
+        ));
+
+        createNotification(notificationRequest);
+    }
+
+    @Transactional
+    public void notifyTaskUnassigned(TaskUnassignedEvent event){
+
+        if(!processedEventStore.markedProcessed("notifications", event.eventId())){
+            log.info("Skipping duplicate event {}", event.eventId());
+            return;
+        }
+        if (event.actorId() != null && event.actorId().equals(event.assigneeId())){
+            log.info("Skipping self-assignment notification for {}", event.eventId());
+            return;
+        }
+
+        CreateNotificationRequest notificationRequest = new CreateNotificationRequest();
+        notificationRequest.setUserId(event.assigneeId());
+        notificationRequest.setOrgId(event.orgId());
+        notificationRequest.setTitle(event.taskTitle());
+        notificationRequest.setType(Notification.Type.TASK_UNASSIGNED);
         notificationRequest.setPayload(Map.of(
                 "taskId", event.taskId(),
                 "projectId", event.projectId()

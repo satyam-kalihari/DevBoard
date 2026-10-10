@@ -53,6 +53,7 @@ public class Notification {
 
     public enum Type {
         TASK_ASSIGNED,
+        TASK_UNASSIGNED,
         TASK_COMMENT_MENTION,
         STANDUP_REMINDER,
         SPRINT_STARTED,

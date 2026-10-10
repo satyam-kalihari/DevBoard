@@ -2,6 +2,7 @@ package com.satyam.DevBoard.messaging;
 
 import com.satyam.DevBoard.config.KafkaTopicConfig;
 import com.satyam.DevBoard.event.TaskAssignedEvent;
+import com.satyam.DevBoard.event.TaskUnassignedEvent;
 import com.satyam.DevBoard.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,12 @@ public class NotificationEventConsumer {
     public void onTaskAssigned(TaskAssignedEvent event){
         log.info("Received {} for assignee {}", event.eventId(), event.assigneeId());
         notificationService.notifyTaskAssigned(event);
+    }
+
+    @KafkaHandler
+    public void onTaskUnassigned(TaskUnassignedEvent event){
+        log.info("Received {} for assignee {}", event.eventId(), event.assigneeId());
+        notificationService.notifyTaskUnassigned(event);
     }
 
     @KafkaHandler(isDefault = true)
