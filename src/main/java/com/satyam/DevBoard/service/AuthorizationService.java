@@ -20,6 +20,9 @@ public class AuthorizationService {
     private final UserRepository userRepository;
 
     public User requiredRole(UUID orgId, UUID keycloakId, OrgMember.Role... allowedRole){
+        User user = userRepository.findByKeycloakId(keycloakId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not provisioned"));
+
         OrgMember membership = orgMemberRepository.findByOrganizationIdAndKeycloakId(orgId, keycloakId)
                 .orElseThrow(() -> new AccessDeniedException("Not a member of this organization"));
 
@@ -28,8 +31,6 @@ public class AuthorizationService {
         if (!allowed) {
             throw new AccessDeniedException("Insufficient permissions for this action");
         }
-        User user = userRepository.findByKeycloakId(keycloakId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not provisioned"));
 
         return user;
     }
