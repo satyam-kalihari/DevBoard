@@ -48,6 +48,13 @@ public class TaskController {
         return ResponseEntity.status(HttpStatus.OK).body(TaskResponse.fromEntity(task));
     }
 
+    @GetMapping(params = "projectId")
+    public ResponseEntity<List<TaskResponse>> getTasksByProjectId(
+            @RequestParam UUID projectId, @AuthenticationPrincipal Jwt jwt) {
+        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(taskService.getProjectTasks(projectId, keycloakId));
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<TaskResponse> updateTask(
             @PathVariable UUID id,

@@ -4,20 +4,22 @@ import com.satyam.DevBoard.dto.request.CreateStandupRunRequest;
 import com.satyam.DevBoard.dto.request.UpdateStandupRunRequest;
 import com.satyam.DevBoard.exception.DuplicateResourceException;
 import com.satyam.DevBoard.exception.ResourceNotFoundException;
-import com.satyam.DevBoard.model.Standup;
-import com.satyam.DevBoard.model.StandupResponse;
-import com.satyam.DevBoard.model.StandupRun;
+import com.satyam.DevBoard.model.*;
+import com.satyam.DevBoard.repository.ProjectMemberRepository;
 import com.satyam.DevBoard.repository.StandupRepository;
 import com.satyam.DevBoard.repository.StandupResponseRepository;
 import com.satyam.DevBoard.repository.StandupRunRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StandupRunService {
@@ -25,6 +27,8 @@ public class StandupRunService {
     private final StandupRepository standupRepository;
     private final StandupRunRepository standupRunRepository;
     private final StandupResponseRepository standupResponseRepository;
+    private final ProjectMemberRepository projectMemberRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public StandupRun createStandupRun(CreateStandupRunRequest request){
@@ -41,6 +45,30 @@ public class StandupRunService {
         standupRun.setRunDate(request.getRunDate());
 
         return standupRunRepository.save(standupRun);
+    }
+
+    @Transactional
+    public void openDailyRun(UUID standupId, LocalDate runDate) {
+        if (standupRunRepository.existsByStandupIdAndRunDate(standupId, runDate)) {
+            return;   // already opened today, which is the normal case on every later tick
+        }
+
+        Standup standup = standupRepository.findByIdWithProject(standupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Standup not found"));
+
+        StandupRun run = new StandupRun();
+        run.setStandup(standup);
+        run.setRunDate(runDate);
+        // saveAndFlush sends the INSERT now, so a unique-constraint race fails here, before any reminders
+        standupRunRepository.saveAndFlush(run);
+
+        Project project = standup.getProject();
+        for (ProjectMember member : projectMemberRepository.findAllByProjectIdWithUser(project.getId())) {
+            notificationService.notifyStandupReminder(
+                    member.getUser(), project.getOrganization(),
+                    project.getName(), project.getId(), run.getId());
+        }
+        log.info("Opened standup run {} for project {} on {}", run.getId(), project.getName(), runDate);
     }
 
     /*

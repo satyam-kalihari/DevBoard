@@ -1,5 +1,6 @@
 package com.satyam.DevBoard.service;
 
+import com.satyam.DevBoard.cache.ProjectTasksChanged;
 import com.satyam.DevBoard.dto.request.CreateOrgMemberRequest;
 import com.satyam.DevBoard.dto.request.UpdateOrgMemberRequest;
 import com.satyam.DevBoard.exception.DuplicateResourceException;
@@ -14,6 +15,7 @@ import com.satyam.DevBoard.repository.TaskRepository;
 import com.satyam.DevBoard.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,7 @@ public class OrgMemberService {
     private final OrgMemberRepository orgMemberRepository;
     private final AuthorizationService authorizationService;
     private final TaskRepository taskRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     //ORGANIZATION MEMBER CAN ONLY BE CREATED BY OWNER OR EDITOR
@@ -127,6 +130,7 @@ public class OrgMemberService {
                 task.setSprint(null);   // moves it to backlog — no sprint_id means backlog
             }
             taskRepository.save(task);
+            eventPublisher.publishEvent(new ProjectTasksChanged(task.getProject().getId()));
         }
     }
 }

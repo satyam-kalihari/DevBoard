@@ -1,7 +1,10 @@
 package com.satyam.DevBoard.service;
 
+import com.satyam.DevBoard.cache.ProjectTasksChanged;
+import com.satyam.DevBoard.cache.TaskListCache;
 import com.satyam.DevBoard.dto.request.CreateTaskRequest;
 import com.satyam.DevBoard.dto.request.UpdateTaskRequest;
+import com.satyam.DevBoard.dto.response.TaskResponse;
 import com.satyam.DevBoard.event.TaskAssignedEvent;
 import com.satyam.DevBoard.event.TaskCreatedEvent;
 import com.satyam.DevBoard.event.TaskStatusChangedAuditEvent;
@@ -32,6 +35,7 @@ public class TaskService {
     private final AuthorizationService authorizationService;
     private final ProjectMemberRepository projectMemberRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final TaskListCache taskListCache;
 
 //    CREATE TASK
     @Transactional
@@ -117,8 +121,26 @@ public class TaskService {
         }
 
 
-
+        eventPublisher.publishEvent(new ProjectTasksChanged(project.getId()));
         return save;
+    }
+
+    @Transactional(readOnly = true)
+    public List<TaskResponse> getProjectTasks(UUID projectId, UUID keycloakId) {
+        UUID orgId = projectRepository.findOrganizationIdById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+
+        // 1. Authorize first, on every request, hit or miss
+        authorizationService.requiredRole(orgId, keycloakId,
+                OrgMember.Role.OWNER, OrgMember.Role.EDITOR, OrgMember.Role.MEMBER, OrgMember.Role.VIEWER);
+
+        // 2. Then the cache, 3. then the database
+        return taskListCache.get(projectId).orElseGet(() -> {
+            List<TaskResponse> tasks = taskRepository.getAllByProjectIdWithDetails(projectId)
+                    .stream().map(TaskResponse::fromEntity).toList();
+            taskListCache.put(projectId, tasks);
+            return tasks;
+        });
     }
 
 //    GET BY TASK ID
@@ -250,6 +272,7 @@ public class TaskService {
             task.getLabels().addAll(labels);
         }
 
+        eventPublisher.publishEvent(new ProjectTasksChanged(task.getProject().getId()));
         return taskRepository.save(task);
     }
 
@@ -261,10 +284,12 @@ public class TaskService {
         boolean isMember = projectMemberRepository.existsByProjectIdAndKeycloakId(task.getProject().getId(), keycloakId);
         if (isMember){
             taskRepository.delete(task);
+            eventPublisher.publishEvent(new ProjectTasksChanged(task.getProject().getId()));
         }
         else {
             authorizationService.requiredRole(task.getProject().getOrganization().getId(), keycloakId, OrgMember.Role.OWNER, OrgMember.Role.EDITOR);
             taskRepository.delete(task);
+            eventPublisher.publishEvent(new ProjectTasksChanged(task.getProject().getId()));
         }
     }
 

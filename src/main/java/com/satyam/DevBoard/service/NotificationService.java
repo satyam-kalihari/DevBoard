@@ -120,6 +120,19 @@ public class NotificationService {
         req.setPayload(Map.of("projectName", projectName));
         createNotification(req);
     }
+    @Transactional
+    public void notifyStandupReminder(User user, Organization org, String projectName,
+                                      UUID projectId, UUID runId) {
+        CreateNotificationRequest req = new CreateNotificationRequest();
+        req.setUserId(user.getId());
+        req.setOrgId(org.getId());
+        req.setType(Notification.Type.STANDUP_REMINDER);
+        req.setTitle("Daily standup for \"" + projectName + "\" is ready");
+        req.setPayload(Map.of(
+                "projectId", projectId.toString(),
+                "standupRunId", runId.toString()));
+        createNotification(req);
+    }
 
     @Transactional
     public void notifySprintStarted(User user, Organization org, String sprintName) {

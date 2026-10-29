@@ -22,7 +22,7 @@ public class UserService {
 
     public User createUser(CreateUserRequest request, UUID keycloakUserId){
 
-        if (userRepository.existsUserByKeycloakId(keycloakUserId)){
+        if (userRepository.existsByKeycloakId(keycloakUserId)){
             throw new DuplicateResourceException("An account already exists by this Id");
         }
 

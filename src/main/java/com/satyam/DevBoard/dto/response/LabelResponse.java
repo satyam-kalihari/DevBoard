@@ -1,13 +1,17 @@
 package com.satyam.DevBoard.dto.response;
 
 import com.satyam.DevBoard.model.Label;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class LabelResponse {
     private UUID id;
     private UUID orgId;

@@ -46,4 +46,7 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, UU
                     "and pm.user.keycloakId = :keycloakId"
     )
     boolean existsByProjectIdAndKeycloakId(@Param("id") UUID id, @Param("keycloakId") UUID keycloakIdId);
+
+    @Query("select pm from ProjectMember pm join fetch pm.user where pm.project.id = :projectId")
+    List<ProjectMember> findAllByProjectIdWithUser(@Param("projectId") UUID projectId);
 }
